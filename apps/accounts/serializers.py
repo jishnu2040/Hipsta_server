@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import User
 
 
-
+# RegistrationSerializer
 class UserRegisterSerializer(serializers.ModelSerializer):
     
     password=serializers.CharField(max_length =68, min_length =6, write_only =True)# write_only= True, because password no need to deserialize
@@ -38,4 +38,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         )
         
         return user
+    
+# VerifySerializer
+class VerifyEmailSerializer(serializers.Serializer):
+    otp = serializers.CharField()
     

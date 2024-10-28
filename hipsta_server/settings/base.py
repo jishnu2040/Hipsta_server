@@ -84,14 +84,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
+import environ
+import os
+
+# Initialize environment variables
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))  # Make sure BASE_DIR is defined
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'hipstateam@gmail.com'
-EMAIL_HOST_PASSWORD = 'rrdk hrbc xzjn acmh'
-DEFAULT_FROM_EMAIL = 'Hipsta Team <hipstateam@gmail.com>'
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS')
+EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL')
+EMAIL_PORT = env.int('EMAIL_PORT')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+
 
 # Celery configuration
 CELERY_BROKER_URL = 'redis://localhost:6379'
