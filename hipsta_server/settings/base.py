@@ -1,4 +1,8 @@
 from pathlib import Path
+import os
+from celery import Celery
+from celery.schedules import crontab
+from time import sleep
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -14,14 +18,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     # Your installed depentencies
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
+    'django_celery_results',
+    'django_celery_beat',
+    'django.contrib.sites',  
+
+
 
     # apps
     'apps.accounts',
 ]
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -70,3 +81,39 @@ STATIC_URL = 'static/'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'hipstateam@gmail.com'
+EMAIL_HOST_PASSWORD = 'rrdk hrbc xzjn acmh'
+DEFAULT_FROM_EMAIL = 'Hipsta Team <hipstateam@gmail.com>'
+
+# Celery configuration
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Kolkata'
+
+CELERY_RESULT_BACKEND = 'django-db'
+
+
+# # Celery Email configuration
+# CELERY_EMAIL_TASK_CONFIG = {
+#     'name': 'djcelery_email_send',
+#     'ignore_result': True,
+# }
+
+# Celery Beat schedule
+CELERY_BEAT_SCHEDULE = {
+    'delete-expired-otps-daily': {
+        'task': 'apps.accounts.tasks.delete_expired_otps',  
+        'schedule': crontab(hour=0, minute=0),  # Every day at midnight
+    },
+}
