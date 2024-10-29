@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from apps.accounts.models import User, OneTimePassword
-from .serializers import UserRegisterSerializer, VerifyEmailSerializer, LoginSerializer, PasswordResetRequestSerializer,SetnewPasswordSerializer, LogoutUserSerializer
+from .serializers import UserRegisterSerializer, VerifyEmailSerializer, LoginSerializer, PasswordResetRequestSerializer,SetnewPasswordSerializer, LogoutUserSerializer,UserSerializer, UserStatusSerializer 
 from .tasks import send_code_to_user_task
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -12,7 +12,8 @@ from django.contrib.auth import get_user_model
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str, DjangoUnicodeDecodeError
-
+from rest_framework import generics, permissions
+from rest_framework.views import APIView
 
 
 # Registration view
@@ -180,3 +181,48 @@ class LogoutUserView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+# User List View 
+class UserListView(generics.ListCreateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_queryset(self):
+        return User.objects.filter(user_type='customer')
+
+# User Detailed View 
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+
+# Block User 
+class BlockUserView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def patch(self, request, user_id):
+        try:
+            user = User.objects.get(pk=user_id)
+            user.is_active =False
+            user.save()
+            return Response({
+                "message": "User blocked successfully"}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class UnblockUserView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def patch(self, request, user_id):
+        try:
+            user = User.objects.get(pk=user_id)
+            user.is_active = True
+            user.save()
+            return Response({"message": "User unblocked successfully"}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)

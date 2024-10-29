@@ -12,4 +12,10 @@ urlpatterns= [
     path('password-reset-confirm/<uidb64>/<token>', PasswordResetConfirm.as_view(), name='password-reset-confirm'),
     path('set-new-password/', SetnewPassword.as_view(), name='set-new-password'),
     path('logout/', LogoutUserView.as_view(), name='logout'),
+
+    # User management endpoints
+    path('users/', UserListView.as_view(), name='user-list'),  
+    path('user/<uuid:pk>/', UserDetailView.as_view(), name='user-detail'),  # Retrieve, update, delete specific user
+    path('user/<uuid:pk>/block/', BlockUserView.as_view(), name='block-user'),  
+    path('user/<uuid:pk>/unblock/', UnblockUserView.as_view(), name='unblock-user'), 
 ]

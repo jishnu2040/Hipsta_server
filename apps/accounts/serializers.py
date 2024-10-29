@@ -168,3 +168,24 @@ class LogoutUserSerializer(serializers.Serializer):
             token.blacklist()
         except TokenError:
             self.fail('bad_token')
+
+
+
+
+
+# User Serializer 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id', 'email', 'first_name', 'last_name', 'is_staff',
+            'is_superuser', 'is_verified', 'is_active', 'date_joined',
+            'last_login', 'auth_provider', 'user_type'
+        ]
+
+
+class UserStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['is_active']
+
