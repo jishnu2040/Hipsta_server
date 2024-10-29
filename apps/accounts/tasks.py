@@ -47,9 +47,10 @@ def send_code_to_user_task(self, email):
              
     return f'OTP email successfully sent to {email}'
 
+    
 @shared_task
 def delete_expired_otps():
     now = timezone.now()
-    OneTimePassword.objects.filter(expires_at__lt=now).delete()
-    return "Expired OTPs deleted successfully"
-  
+    expired_otps = OneTimePassword.objects.filter(expires_at__lt=now)
+    deleted_count, _ = expired_otps.delete()
+    return f'Expired OTPs deleted successfully: {deleted_count} OTPs removed.'

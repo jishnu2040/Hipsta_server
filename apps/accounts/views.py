@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from apps.accounts.models import User, OneTimePassword
-from .serializers import UserRegisterSerializer, VerifyEmailSerializer, LoginSerializer, PasswordResetRequestSerializer,SetnewPasswordSerializer
+from .serializers import UserRegisterSerializer, VerifyEmailSerializer, LoginSerializer, PasswordResetRequestSerializer,SetnewPasswordSerializer, LogoutUserSerializer
 from .tasks import send_code_to_user_task
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -167,3 +167,16 @@ class SetnewPassword(GenericAPIView):
         serializer=self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response({'message':'password reset successfull'}, status=status.HTTP_200_OK)
+
+
+# Logout View 
+class LogoutUserView(GenericAPIView):
+    serializer_class = LogoutUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        print(request.data)
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)

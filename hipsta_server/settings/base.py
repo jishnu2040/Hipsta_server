@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_celery_results',
     'django_celery_beat',
-    'django.contrib.sites',  
+    'django.contrib.sites',
+    'rest_framework_simplejwt.token_blacklist',  
 
 
 
@@ -44,7 +45,8 @@ INSTALLED_APPS = [
     'apps.accounts',
 ]
 
-
+SITE_ID = 1
+ 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -101,7 +103,8 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-
+USE_TZ = True 
+TIME_ZONE = 'Asia/Kolkata'
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -115,8 +118,8 @@ DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
 
 
 # Celery configuration
-CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -125,16 +128,11 @@ CELERY_TIMEZONE = 'Asia/Kolkata'
 CELERY_RESULT_BACKEND = 'django-db'
 
 
-# # Celery Email configuration
-# CELERY_EMAIL_TASK_CONFIG = {
-#     'name': 'djcelery_email_send',
-#     'ignore_result': True,
-# }
 
 # Celery Beat schedule
 CELERY_BEAT_SCHEDULE = {
     'delete-expired-otps-daily': {
         'task': 'apps.accounts.tasks.delete_expired_otps',  
-        'schedule': crontab(hour=0, minute=0),  # Every day at midnight
+        'schedule': crontab(hour=20, minute=18), 
     },
 }
