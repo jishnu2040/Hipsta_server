@@ -23,6 +23,8 @@ SECRET_KEY = env('SECRET_KEY')
 
 # Application definition
 INSTALLED_APPS = [
+
+    # Django default apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -30,7 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Your installed depentencies
+    # Third-party dependencies
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -39,10 +41,15 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'rest_framework_simplejwt.token_blacklist',  
 
-
-
-    # apps
+    # Your apps
     'apps.accounts',
+    'apps.customer_portal',   
+    'apps.booking',            
+    'apps.partner_portal',   
+    'apps.payments',         
+    'apps.notifications',      
+    'apps.analytics',        
+    'apps.core', 
 ]
 
 SITE_ID = 1
