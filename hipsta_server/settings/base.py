@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'apps.notifications',      
     'apps.analytics',        
     'apps.core', 
+    'apps.admin_panel'
 ]
 
 SITE_ID = 1
