@@ -32,7 +32,11 @@ class RegisterUserView(GenericAPIView):
                 return Response({'error': "Email already registered and verified."}, status=status.HTTP_400_BAD_REQUEST)
 
             # Send OTP to existing user (user registered but not verified)
-            send_code_to_user_task.delay(existing_user.email)
+            try:
+                send_code_to_user_task.delay(existing_user.email)
+            except Exception as e:
+                print(f"Failed to send email task: {e}")
+
             return Response({'message': 'Verification mail resent.'}, status=status.HTTP_200_OK)
         else:
             user_data = request.data
@@ -45,7 +49,11 @@ class RegisterUserView(GenericAPIView):
                 user = serializer.data
                 print("serializer userdata", user)
                 # Send email function using Celery task
-                send_code_to_user_task.delay(user['email'])
+                try:
+                    send_code_to_user_task.delay(user['email'])
+                except Exception as e:
+                    print(f"Failed to send email task: {e}")
+
 
                 return Response({
                     'data': user,
@@ -162,12 +170,15 @@ class PasswordResetConfirm(GenericAPIView):
 
 # newPassword view 
 class SetnewPassword(GenericAPIView):
-    serializer_class=SetnewPasswordSerializer
+    serializer_class = SetnewPasswordSerializer
 
-    def patch(self,request):
-        serializer=self.serializer_class(data=request.data)
+    def patch(self, request):
+        # Print the request data to the console
+        print("Request Data:", request.data)
+
+        serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response({'message':'password reset successfull'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Password reset successful'}, status=status.HTTP_200_OK)
 
 
 # Logout View 

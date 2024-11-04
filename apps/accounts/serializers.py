@@ -146,7 +146,7 @@ class SetnewPasswordSerializer(serializers.ModelSerializer):
             user.save()
             return user
         except Exception as e:
-            return AuthenticationFailed("link is invalid or has expired")
+            return AuthenticationFailed("link is invalid or has expired123")
 
 
 class LogoutUserSerializer(serializers.Serializer):

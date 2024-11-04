@@ -68,7 +68,25 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'hipsta_server.urls'
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    # Add other frontend URLs if needed
+]
+
+
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'DELETE',
+    'OPTIONS',
+    'PATCH',  
+]
+
 
 AUTH_USER_MODEL = 'accounts.User'
 
