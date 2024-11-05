@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django.contrib.sites',
     'rest_framework_simplejwt.token_blacklist',  
+    
 
     # Your apps
     'apps.accounts',
@@ -68,23 +69,37 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'hipsta_server.urls'
 
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    # Add other frontend URLs if needed
 ]
 
 
-CORS_ALLOW_ALL_ORIGINS = True
+
+
 
 
 CORS_ALLOW_METHODS = [
     'GET',
     'POST',
     'PUT',
+    'PATCH',
     'DELETE',
     'OPTIONS',
-    'PATCH',  
+]
+
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 
@@ -162,3 +177,8 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=20, minute=18), 
     },
 }
+
+
+GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
+SOCIAL_AUTH_PASSWORD = env('SOCIAL_PASSWORD')

@@ -13,6 +13,7 @@ urlpatterns= [
     path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirm.as_view(), name='password-reset-confirm'),
     path('set-new-password/', SetnewPassword.as_view(), name='set-new-password'),
     path('logout/', LogoutUserView.as_view(), name='logout'),
+    path('google/', GoogleSignInView.as_view(), name='google' ),
 
     # User management endpoints
     path('users/', UserListView.as_view(), name='user-list'),  

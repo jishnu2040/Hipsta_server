@@ -7,7 +7,9 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import smart_str, smart_bytes, force_str 
 from .utils import send_normal_email
 from rest_framework_simplejwt.tokens import RefreshToken,TokenError
-
+from .utils import Google, register_social_user
+from rest_framework.exceptions import AuthenticationFailed
+from django.conf import settings
 
 # RegistrationSerializer
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -189,3 +191,32 @@ class UserStatusSerializer(serializers.ModelSerializer):
         model = User
         fields = ['is_active']
 
+
+
+class GoogleSignInSerializer(serializers.Serializer):
+    access_token = serializers.CharField(min_length = 6)
+
+    def validate_access_token(self, access_token):
+        google_user_data=Google.validate(access_token)
+
+
+        if isinstance(google_user_data, str):  # Check if Google.validate returned an error message
+            raise serializers.ValidationError("This token is invalid or has expired")
+        
+        print("info",google_user_data)
+        try:
+            # get id of the user 
+            user_id  = google_user_data["sub"]
+        except:
+            raise serializers.ValidationError("this token is invalid or has expired")
+        
+        # checking request not come from malious app 
+        if google_user_data['aud'] != settings.GOOGLE_CLIENT_ID:
+            raise AuthenticationFailed(detail="count not verify user")
+        
+        email = google_user_data['email']
+        first_name = google_user_data.get('given_name', '')
+        last_name = google_user_data.get('family_name', '') 
+        provider = "google"
+
+        return register_social_user(provider, email, first_name, last_name)

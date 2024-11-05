@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from apps.accounts.models import User, OneTimePassword
-from .serializers import UserRegisterSerializer, VerifyEmailSerializer, LoginSerializer, PasswordResetRequestSerializer,SetnewPasswordSerializer, LogoutUserSerializer,UserSerializer, UserStatusSerializer 
+from .serializers import UserRegisterSerializer, VerifyEmailSerializer, LoginSerializer, PasswordResetRequestSerializer,SetnewPasswordSerializer, LogoutUserSerializer,UserSerializer, GoogleSignInSerializer
 from .tasks import send_code_to_user_task
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -174,6 +174,7 @@ class SetnewPassword(GenericAPIView):
 
     def patch(self, request):
         # Print the request data to the console
+        print("h H haaaa")
         print("Request Data:", request.data)
 
         serializer = self.serializer_class(data=request.data)
@@ -237,3 +238,16 @@ class UnblockUserView(APIView):
             return Response({"message": "User unblocked successfully"}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class GoogleSignInView(GenericAPIView):
+    serializer_class= GoogleSignInSerializer
+
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if not serializer.is_valid():
+            print(serializer.errors)  
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        data = serializer.validated_data['access_token']
+        return Response(data, status=status.HTTP_200_OK)
