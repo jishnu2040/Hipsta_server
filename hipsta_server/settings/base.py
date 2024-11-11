@@ -8,6 +8,7 @@ from datetime import timedelta
 
 
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -178,7 +179,15 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-
+# map 
 GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
 SOCIAL_AUTH_PASSWORD = env('SOCIAL_PASSWORD')
+
+
+# s3 
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+AWS_REGION = env('AWS_REGION', default='us-east-1')
+

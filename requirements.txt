@@ -1,6 +1,8 @@
 amqp==5.2.0
 asgiref==3.8.1
 billiard==4.2.1
+boto3==1.35.57
+botocore==1.35.57
 cachetools==5.5.0
 celery==5.4.0
 certifi==2024.8.30
@@ -30,6 +32,7 @@ google-auth-httplib2==0.2.0
 googleapis-common-protos==1.65.0
 httplib2==0.22.0
 idna==3.10
+jmespath==1.0.1
 kombu==5.4.2
 oauthlib==3.2.2
 pillow==11.0.0
@@ -49,6 +52,7 @@ redis==5.2.0
 requests==2.32.3
 requests-oauthlib==2.0.0
 rsa==4.9
+s3transfer==0.10.3
 six==1.16.0
 social-auth-core==4.5.4
 sqlparse==0.5.1
@@ -57,3 +61,5 @@ uritemplate==4.1.1
 urllib3==2.2.3
 vine==5.1.0
 wcwidth==0.2.13
+
+
