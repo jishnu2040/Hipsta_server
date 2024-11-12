@@ -1,6 +1,6 @@
 from rest_framework import generics, status
 from .models import ServiceType, Service, PartnerDetail
-from .serializers import ServiceTypeSerializer,PartnerCreateSerializer
+from .serializers import ServiceTypeSerializer,PartnerDetailSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib import redirects
 from rest_framework.response import Response
@@ -38,8 +38,13 @@ class ServiceTypeRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView
 
 
 
-class PartnerCreateView(generics.CreateAPIView):
 
-
-    queryset = PartnerDetail.objects.all()
-    serializer_class = PartnerCreateSerializer
+# partner create view 
+class PartnerCreateView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = PartnerDetailSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # Return more detailed error messages
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

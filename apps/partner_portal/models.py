@@ -5,7 +5,7 @@ from django.utils import timezone
 
 
 class ServiceType(models.Model):
-    name =models.CharField(max_length=125)
+    name =models.CharField(max_length=125, unique=True)
     description = models.CharField(max_length=255, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -16,15 +16,17 @@ class ServiceType(models.Model):
 class PartnerDetail(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, related_name='partner_profile')  # Use a string reference
-    company_name = models.CharField(max_length=255, verbose_name=_("Company Name"))
+    business_name = models.CharField(max_length=255, null=True, verbose_name=_("business Name"))
     address = models.CharField(max_length=255, verbose_name=_("Address"))
     phone = models.CharField(max_length=20, verbose_name=_("Phone Number"))
     website = models.URLField(max_length=200, blank=True, null=True, verbose_name=_("Website"))
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name=_("Latitude"))
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name=_("Longitude"))
+    selected_services = models.ManyToManyField(ServiceType, blank=True, verbose_name=_("Selected Services"))
+    team_size = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Team Size"))
+    latitude = models.DecimalField(max_digits=17, decimal_places=15, verbose_name=_("Latitude"))
+    longitude = models.DecimalField(max_digits=17, decimal_places=15, verbose_name=_("Longitude"))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    license_certificate_image = models.ImageField(upload_to='license_certificates/', blank=True, null=True, verbose_name=_("License Certificate Image"))
+    license_certificate_image = models.CharField(max_length=255, null=True)
 
     def __str__(self):
         return self.company_name
