@@ -27,17 +27,6 @@ class GetPresignedURL(APIView):
         else:
             return Response({'error': 'could not generate presigned URL'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# # ServiceType Views
-# class ServiceListCreateView(generics.ListCreateAPIView):
-#     queryset = ServiceType.objects.all()
-#     serializer_class = ServiceTypeSerializer
-
-# class ServiceTypeRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = ServiceType.objects.all()
-#     serializer_class = ServiceTypeSerializer
-
-
-
 
 # partner create view 
 class PartnerCreateView(APIView):

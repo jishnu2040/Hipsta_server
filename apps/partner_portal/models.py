@@ -27,6 +27,8 @@ class PartnerDetail(models.Model):
     def __str__(self):
         return self.business_name
 
+
+
 # this is general Availability(Partner)
 class PartnerAvailability(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -73,7 +75,7 @@ class EmployeeAvailability(models.Model):
     employee = models.ForeignKey(Employee, related_name="availabilities", on_delete=models.CASCADE)
     date = models.DateField(verbose_name=_("Date"))
     """30 min slots"""
-    start_time = models.TimeField(verbose_name=_("start name")) 
+    start_time = models.TimeField(verbose_name=_("Start Time")) 
     # duration can be 30 min, 1hr etc....
     duration = models.DurationField(verbose_name=_("Duration"))
     is_booked = models.BooleanField(default=False, verbose_name=_("Is Booked"))
@@ -110,3 +112,12 @@ class EmployeeAvailability(models.Model):
         return f"{self.employee.name} available on {self.date} at {self.start_time}"
     
 
+class PartnerImage(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    partner = models.ForeignKey('PartnerDetail', on_delete=models.CASCADE, related_name='image_slides')
+    image_url = models.URLField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+    description = models.CharField(max_length=255, blank=True, null=True)  # Optional description for the image slide
+
+    def __str__(self):
+        return f"Image Slide for {self.partner.business_name}"
