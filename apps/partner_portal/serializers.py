@@ -1,14 +1,6 @@
 from rest_framework import serializers
-from .models import ServiceType, PartnerDetail
-
-
-
-
-class ServiceTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ServiceType
-        fields = ['id', 'name', 'description', 'created_at', 'updated_at']
-
+from .models import PartnerDetail
+from apps.core.models import ServiceType
 
 
 class PartnerDetailSerializer(serializers.ModelSerializer):
@@ -27,8 +19,10 @@ class PartnerDetailSerializer(serializers.ModelSerializer):
         return value
 
     def validate_selected_services(self, value):
-    # Ensure 'value' is a list of IDs and not objects
-        service_ids = [service_type.id for service_type in value]  # Extracting the ids
-        if not ServiceType.objects.filter(id__in=service_ids).exists():
+        # Extract list of IDs from the selected services input
+        service_ids = [service.id for service in value]
+        # Check that all provided IDs correspond to actual ServiceType records
+        valid_ids = set(ServiceType.objects.filter(id__in=service_ids).values_list('id', flat=True))
+        if not valid_ids == set(service_ids):
             raise serializers.ValidationError("Some service types are invalid.")
         return value

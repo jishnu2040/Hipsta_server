@@ -1,6 +1,6 @@
 from rest_framework import generics, status
-from .models import ServiceType, Service, PartnerDetail
-from .serializers import ServiceTypeSerializer,PartnerDetailSerializer
+from .models import  PartnerDetail
+from .serializers import PartnerDetailSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib import redirects
 from rest_framework.response import Response
@@ -27,14 +27,14 @@ class GetPresignedURL(APIView):
         else:
             return Response({'error': 'could not generate presigned URL'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# ServiceType Views
-class ServiceListCreateView(generics.ListCreateAPIView):
-    queryset = ServiceType.objects.all()
-    serializer_class = ServiceTypeSerializer
+# # ServiceType Views
+# class ServiceListCreateView(generics.ListCreateAPIView):
+#     queryset = ServiceType.objects.all()
+#     serializer_class = ServiceTypeSerializer
 
-class ServiceTypeRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = ServiceType.objects.all()
-    serializer_class = ServiceTypeSerializer
+# class ServiceTypeRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = ServiceType.objects.all()
+#     serializer_class = ServiceTypeSerializer
 
 
 
