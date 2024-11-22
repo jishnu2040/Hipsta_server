@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ServiceType
+from .models import ServiceType, Service
 
 
 class ServiceTypeSerializer(serializers.ModelSerializer):
@@ -14,3 +14,19 @@ class ServiceTypeSerializer(serializers.ModelSerializer):
         if obj.image:
             return request.build_absolute_uri(obj.image.url)
         return None
+    
+
+
+class ServiceSerializer(serializers.ModelSerializer):
+    partner_id = serializers.UUIDField(source='partner.id', read_only=True)  # Add partner_id field
+
+    class Meta:
+        model = Service
+        fields = ['id', 'name', 'description', 'price', 'duration', 'image', 'status', 'partner_id'] 
+
+
+
+class ServiceCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = ['id', 'partner', 'business_type', 'name', 'description', 'price', 'duration', 'image', 'status']

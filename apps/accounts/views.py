@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from apps.accounts.models import User, OneTimePassword
-from .serializers import UserRegisterSerializer, VerifyEmailSerializer, LoginSerializer, PasswordResetRequestSerializer,SetnewPasswordSerializer, LogoutUserSerializer,UserSerializer, GoogleSignInSerializer
+from .serializers import *
 from .tasks import send_code_to_user_task
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -114,17 +114,6 @@ class LoginUserView(GenericAPIView):
 
 
 
-# Tset View 
-class testAuthenticationView(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        data={
-            'msg': "its working in authenticated user"
-        }
-        return Response(data,status=status.HTTP_200_OK)
-    
-
 
 # Password reset Request View 
 class PasswordResetRequestView(GenericAPIView):
@@ -174,7 +163,6 @@ class SetnewPassword(GenericAPIView):
 
     def patch(self, request):
         # Print the request data to the console
-        print("h H haaaa")
         print("Request Data:", request.data)
 
         serializer = self.serializer_class(data=request.data)
@@ -200,10 +188,10 @@ class LogoutUserView(GenericAPIView):
 # User List View 
 class UserListView(generics.ListCreateAPIView):
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser]
+    # permission_classes = [permissions.IsAdminUser]
 
     def get_queryset(self):
-        return User.objects.filter(user_type='customer')
+        return User.objects.filter(user_type='customer',is_superuser=False)
 
 # User Detailed View 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -251,3 +239,18 @@ class GoogleSignInView(GenericAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         data = serializer.validated_data['access_token']
         return Response(data, status=status.HTTP_200_OK)
+
+
+
+
+class ProfileView(APIView):
+    # permission_classes = [IsAuthenticated]
+    
+    def get(self, request, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            serializer = ProfileSerializer(user)
+            return Response(serializer.data, status = status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "user not found"}, status=status.HTTP_401_UNAUTHORIZED)
+

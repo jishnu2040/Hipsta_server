@@ -63,7 +63,7 @@ class LoginSerializer(serializers.ModelSerializer):
     access_token = serializers.CharField(max_length=255, read_only=True)
     refresh_token = serializers.CharField(max_length=255, read_only=True)
     user_type = serializers.CharField(max_length=50, read_only=True)
-    user_id = serializers.IntegerField(read_only=True)  # Add user_id field
+    user_id = serializers.UUIDField(read_only=True)  
 
     class Meta:
         model = User
@@ -90,7 +90,7 @@ class LoginSerializer(serializers.ModelSerializer):
             'access_token': str(user_tokens['access']),
             'refresh_token': str(user_tokens['refresh']),
             'user_type': user.user_type,
-            'user_id': user.id  
+            'user_id': user.id
         }
 
 
@@ -220,3 +220,20 @@ class GoogleSignInSerializer(serializers.Serializer):
         provider = "google"
 
         return register_social_user(provider, email, first_name, last_name)
+
+
+
+
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['full_name', 'email', 'date_joined']
+
+
+    def get_full_name(self, obj):
+        return obj.get_full_name()
