@@ -1,6 +1,9 @@
 import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
+from datetime import datetime, timedelta
+
+
 
 def generate_presigned_url(file_name, file_type=None, expiration=3600):
     """
@@ -39,3 +42,29 @@ def generate_presigned_url(file_name, file_type=None, expiration=3600):
     except ClientError as e:
         print(f"Error generating pre-signed URL: {e}")
         return None, None
+
+
+
+
+def split_availability(date, start_time, duration, interval_minutes=30):
+    start = datetime.combine(date, start_time)
+    slots = []
+    total_minutes = duration['hours'] * 60 + duration['minutes']
+    end_time = start + timedelta(minutes=total_minutes)
+
+    while start < end_time:
+        # Create slot for the current interval
+        slot = {
+            "date": start.date(),
+            "start_time": start.time(),
+            "duration": interval_minutes,  # Each interval in minutes
+            "is_booked": False,
+            "employee_id": "df14a9d7-1698-4c3f-a926-cf9c29224536",
+            "is_unavailable": False,
+        }
+        slots.append(slot)
+
+        # Move to the next interval
+        start += timedelta(minutes=interval_minutes)
+    
+    return slots

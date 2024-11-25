@@ -29,10 +29,11 @@ class PartnerDetail(models.Model):
 
 
 
-# this is general Availability(Partner)
+# this is general weekly availability(Partner)
 class PartnerAvailability(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     partner = models.ForeignKey('PartnerDetail', related_name='availabilities', on_delete=models.CASCADE)
+    is_weekly = models.BooleanField(default=True)
     weekday = models.CharField(max_length=10, choices=[
         ('monday', "Monday"),
         ('tuesday', 'Tuesday'),
@@ -41,12 +42,17 @@ class PartnerAvailability(models.Model):
         ('friday', 'Friday'),
         ('saturday', 'Saturday'),
         ('sunday', 'Sunday')
-    ])
+    ], blank=True, null=True)  # Weekday should be optional for overrides
+    specific_date = models.DateField(blank=True, null=True, verbose_name=_("Specific Date"))  # Use specific_date for non-weekly availabilities
     start_time = models.TimeField(verbose_name=_("Start Time"))
     end_time = models.TimeField(verbose_name=_("End Time"))
 
+    class Meta:
+        unique_together = ('partner', 'weekday', 'specific_date', 'start_time', 'end_time')
+
     def __str__(self):
-        return f"{self.partner} availability on {self.weekday} from {self.start_time} to {self.end_time}"
+        return f"{self.partner} availability on {self.weekday or self.specific_date} from {self.start_time} to {self.end_time}"
+
     
 
 
@@ -71,45 +77,64 @@ class Employee(models.Model):
         return f"{self.name}- {self.specialization}"
     
 
+
+
+
+
 class EmployeeAvailability(models.Model):
-    employee = models.ForeignKey(Employee, related_name="availabilities", on_delete=models.CASCADE)
-    date = models.DateField(verbose_name=_("Date"))
-    """30 min slots"""
-    start_time = models.TimeField(verbose_name=_("Start Time")) 
-    # duration can be 30 min, 1hr etc....
+    employee = models.ForeignKey('Employee',related_name="availabilities", on_delete=models.CASCADE, db_index=True)
+    date = models.DateField(verbose_name=_("Date"), db_index=True)
+    start_time = models.TimeField(verbose_name=_("Start Time"),db_index=True)
     duration = models.DurationField(verbose_name=_("Duration"))
     is_booked = models.BooleanField(default=False, verbose_name=_("Is Booked"))
+    is_unavailable = models.BooleanField(default=False, verbose_name=_("Is Unavailable"))  # Manual overrides for unavailable times
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['employee', 'date', 'start_time']),
+            models.Index(fields=['date', 'start_time']),
+            models.Index(fields=['is_booked']),
+        ]
+        unique_together = ('employee', 'date', 'start_time')  # Ensure uniqueness for a specific time slot per employee
 
     @property
     def end_time(self):
         return (datetime.datetime.combine(datetime.date.min, self.start_time) + self.duration).time()
 
-
-
-    def  clean(self):
-        # Validation  ................ Employee availability must be within Partner availability
-        partnerAvailabilies = PartnerAvailability.objects.filter(partner=self.employee.partner, weekday= self.get_weekday(self.date))
-        if not partnerAvailabilies:
-            raise ValidationError(_("No partner availablity for the given date and weekday"))
+    def clean(self):
+        # Validation: Employee availability must be within Partner availability
+        partner_availabilities = PartnerAvailability.objects.filter(
+            partner=self.employee.partner,
+            weekday=self.get_weekday(self.date),
+        ).exclude(
+            specific_date__isnull=False  # Exclude date-specific overrides if checking weekly schedule
+        )
         
-        for partner_availability in partnerAvailabilies:
+        # Check if there's a specific override for the exact date
+        date_override = PartnerAvailability.objects.filter(
+            partner=self.employee.partner,
+            specific_date=self.date
+        ).first()
+        if date_override:
+            partner_availabilities = [date_override]
+
+        if not partner_availabilities:
+            raise ValidationError(_("No partner availability for the given date and weekday"))
+
+        for partner_availability in partner_availabilities:
             # Check if the employee's time slot fits within the partner's available time slot
             if self.start_time < partner_availability.start_time or self.end_time > partner_availability.end_time:
-                raise ValidationError(_("Employee's availabity must fall with in partner's availabilty for the same time."))
+                raise ValidationError(_("Employee's availability must fall within partner's availability for the same time."))
 
-
-    
-
-
-    # helper function get weekday like Moday , Tuesday etc..
     def get_weekday(self, date):
         return date.strftime("%A").lower()
-    
 
-    
     def __str__(self):
         return f"{self.employee.name} available on {self.date} at {self.start_time}"
+    
+
+
+
     
 
 class PartnerImage(models.Model):
@@ -121,3 +146,13 @@ class PartnerImage(models.Model):
 
     def __str__(self):
         return f"Image Slide for {self.partner.business_name}"
+    
+
+
+class PartnerHoliday(models.Model):
+    partner = models.ForeignKey(PartnerDetail, related_name='holidays', on_delete=models.CASCADE)
+    date = models.DateField(verbose_name=_("Holiday Date"))
+    description = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Description"))
+    
+    def __str__(self):
+        return f"Holiday on {self.date} for {self.partner.business_name}"

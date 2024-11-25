@@ -5,8 +5,11 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib import redirects
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import ValidationError
 from .utils import generate_presigned_url
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
+from rest_framework.exceptions import PermissionDenied
+from .utils import split_availability
 
 
 class GetPresignedURL(APIView):
@@ -92,3 +95,73 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             partner = PartnerDetail.objects.get(id=partner_id)
         except PartnerDetail.DoesNotExist:
             raise NotFound(detail="Partner not found")
+        
+
+
+
+
+
+
+
+
+
+
+
+
+class PartnerAvailabilityViewSet(viewsets.ModelViewSet):
+    queryset = PartnerAvailability.objects.all()
+    serializer_class = PartnerAvailabilitySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+
+        user =self.request.user
+        if hasattr(user, 'partner_profile'):
+            return PartnerAvailability.objects.filter(partner=user.partner_profile)
+        else:
+            raise PermissionDenied("you do not have permission to view this data. ")
+        
+    
+    def perform_create(self, serializer):
+        if not self.request.user.partner_profile:
+            raise ValidationError("User must be associated with a partner.")
+        serializer.save(partner=self.request.user.partner_profile)
+
+
+
+
+
+class EmployeeAvailabilityViewSet(viewsets.ModelViewSet):
+    queryset = EmployeeAvailability.objects.all()
+    serializer_class = EmployeeAvailabilitySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        employee_id = self.request.query_params.get('employee_id')
+        if employee_id:
+            return EmployeeAvailability.objects.filter(employee_id=employee_id)
+        return super().get_queryset()
+
+    def perform_create(self, serializer):
+        # Get the data from the serializer
+        employee = serializer.validated_data['employee']
+        date = serializer.validated_data['date']
+        start_time = serializer.validated_data['start_time']
+        duration = serializer.validated_data['duration']
+
+        # Split the availability into smaller slots
+        slots = split_availability(date, start_time, {
+            'hours': duration.seconds // 3600,
+            'minutes': (duration.seconds // 60) % 60
+        })
+
+        # Save each slot in the database
+        for slot in slots:
+            EmployeeAvailability.objects.create(
+                employee=employee,
+                date=slot['date'],
+                start_time=slot['start_time'],
+                duration=timedelta(minutes=slot['duration']),
+                is_booked=slot['is_booked'],
+                is_unavailable=slot['is_unavailable']
+            )
