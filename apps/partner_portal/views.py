@@ -1,5 +1,6 @@
 from rest_framework import generics, status
-from .models import  PartnerDetail
+from .utils import haversine 
+from .models import  PartnerDetail,EmployeeOTP
 from .serializers import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib import redirects
@@ -10,6 +11,46 @@ from .utils import generate_presigned_url
 from rest_framework import viewsets, permissions
 from rest_framework.exceptions import PermissionDenied
 from .utils import split_availability
+import random
+
+
+
+
+class PartnerListView(generics.ListAPIView):
+    serializer_class = PartnerDetailSerializer
+
+    def get_queryset(self):
+        queryset = PartnerDetail.objects.all()
+        lat = self.request.query_params.get('lat')
+        lng = self.request.query_params.get('lng')
+        
+        if lat and lng:
+            try:
+                lat = float(lat)
+                lng = float(lng)
+                partners_with_distance = []
+                
+                for partner in queryset:
+                    distance = haversine(lat, lng, partner.latitude, partner.longitude)  # Use latitude and longitude here
+                    partners_with_distance.append((partner, distance))
+                
+                partners_with_distance.sort(key=lambda x: x[1])  # Sort partners by distance
+                sorted_partners = [partner for partner, distance in partners_with_distance]
+                return sorted_partners
+            except ValueError:
+                pass  # If lat/lng conversion fails, do nothing
+                
+        return queryset
+
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class GetPresignedURL(APIView):
@@ -165,3 +206,71 @@ class EmployeeAvailabilityViewSet(viewsets.ModelViewSet):
                 is_booked=slot['is_booked'],
                 is_unavailable=slot['is_unavailable']
             )
+
+
+
+class SendOTPView(APIView):
+    """
+    Send OTP to the employee's phone number.
+    """
+
+    def post(self, request):
+        phone = request.data.get('phone')
+
+        if not phone:
+            return Response({"error": "Phone number is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the employee exists
+        try:
+            employee = Employee.objects.get(phone=phone, is_active=True)
+        except Employee.DoesNotExist:
+            return Response({"error": "Employee not found or inactive"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Generate a 6-digit OTP
+        otp = random.randint(100000, 999999)
+
+        # Save OTP to the database
+        EmployeeOTP.objects.create(phone=phone, otp=otp)
+
+        # Simulate sending OTP (integrate SMS gateway here)
+        print(f"OTP for {phone}: {otp}")
+
+        return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
+
+
+
+class VerifyOTPAndLoginView(APIView):
+    """
+    Verify OTP and log in the employee.
+    """
+
+    def post(self, request):
+        phone = request.data.get('phone')
+        otp = request.data.get('otp')
+
+        if not phone or not otp:
+            return Response({"error": "Phone number and OTP are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check OTP validity
+        try:
+            otp_record = EmployeeOTP.objects.get(phone=phone, otp=otp)
+        except EmployeeOTP.DoesNotExist:
+            return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check OTP expiry (assuming EmployeeOTP has a `is_valid` method as shown earlier)
+        if not otp_record.is_valid():
+            return Response({"error": "OTP has expired"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get the employee object
+        try:
+            employee = Employee.objects.get(phone=phone, is_active=True)
+        except Employee.DoesNotExist:
+            return Response({"error": "Employee not found or inactive"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Create session for the employee
+        request.session['employee_id'] = str(employee.id)
+
+        # Delete OTP after successful login
+        otp_record.delete()
+
+        return Response({"message": "Login successful"}, status=status.HTTP_200_OK)

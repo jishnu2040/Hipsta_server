@@ -4,6 +4,16 @@ from apps.core.models import ServiceType
 from apps.core.serializers import ServiceTypeSerializer  
 from datetime import datetime, timedelta
 
+
+
+
+class PartnerSerializer(serializers.ModelSerializer):
+    service_type = ServiceTypeSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = PartnerDetail
+        fields = ['id', 'business_name', 'website', 'team_size', 'latitude', 'longitude', 'service_type']
+
 class PartnerDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartnerDetail

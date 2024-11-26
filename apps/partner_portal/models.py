@@ -68,13 +68,27 @@ class Employee(models.Model):
     partner = models.ForeignKey(PartnerDetail, related_name='employees', on_delete=models.CASCADE)
     name = models.CharField(max_length=100, verbose_name=_("Employee Name"))
     specialization = models.ForeignKey(Specialization, on_delete=models.PROTECT, verbose_name=_("Specialization"))
-    phone = models.CharField(max_length=20, verbose_name=_("phone number"))
+    phone = models.CharField(max_length=20,unique=True, verbose_name=_("phone number"))
     is_available = models.BooleanField(default=True, verbose_name=_("Is Available"))
     is_active = models.BooleanField(default=True, verbose_name=_("Is Activate"))
 
 
     def __str__(self):
         return f"{self.name}- {self.specialization}"
+    
+
+
+class EmployeeOTP(models.Model):
+    phone = models.CharField(max_length=20, verbose_name=_("Phone Number"))
+    otp = models.CharField(max_length=6, verbose_name=_("OTP"))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self):
+        # OTP is valid for 5 minutes
+        return datetime.datetime.now(datetime.timezone.utc) - self.created_at < datetime.timedelta(minutes=5)
+
+    def __str__(self):
+        return f"OTP for {self.phone}"
     
 
 
@@ -156,3 +170,7 @@ class PartnerHoliday(models.Model):
     
     def __str__(self):
         return f"Holiday on {self.date} for {self.partner.business_name}"
+
+
+
+
