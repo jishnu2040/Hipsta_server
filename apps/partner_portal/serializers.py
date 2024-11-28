@@ -97,6 +97,8 @@ class PartnerAvailabilitySerializer(serializers.ModelSerializer):
 
 
 
+
+
 class EmployeeAvailabilitySerializer(serializers.ModelSerializer):
     end_time = serializers.SerializerMethodField()
 
@@ -131,3 +133,10 @@ class EmployeeAvailabilitySerializer(serializers.ModelSerializer):
         elif isinstance(value, timedelta):  # If it's already a timedelta object
             return value
         raise serializers.ValidationError("Duration must be in minutes (as an integer).")
+
+
+
+class PartnerImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PartnerImage
+        fields = ['partner', 'image_url', 'description']

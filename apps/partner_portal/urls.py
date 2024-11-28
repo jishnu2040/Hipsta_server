@@ -6,11 +6,13 @@ from .views import (
     EmployeeAvailabilityViewSet,
     EmployeeViewSet, 
     GetPresignedURL, 
+    SavePartnerImage,
     PartnerCreateView, 
     PartnerProfileView, 
     SpecializationListView,
     SendOTPView,
     VerifyOTPAndLoginView,
+    PartnerByServiceView
 
 )
 
@@ -22,6 +24,7 @@ router.register(r'employee-availability', EmployeeAvailabilityViewSet, basename=
 
 # Defining urlpatterns and including router URLs
 urlpatterns = [
+    path('partnerViewFilterByService/', PartnerByServiceView.as_view(), name='partners_by_service'),
     path('partners/', PartnerListView.as_view(), name='partner-list'),
     # Custom employee endpoints with partner-specific actions
     path('<uuid:partner>/employees/list/', EmployeeViewSet.as_view({'get': 'list'}), name='employee-list'),
@@ -29,6 +32,7 @@ urlpatterns = [
     
     # Additional endpoints
     path('get-presigned-url/', GetPresignedURL.as_view(), name='get_presigned_url'),
+    path('partner-image-save',SavePartnerImage.as_view(), name='save_partner_image'),
     path('create/', PartnerCreateView.as_view(), name='create-partner'),
     path('partner-detail/', PartnerProfileView.as_view(), name='partner-detail'),
     path('specializations/', SpecializationListView.as_view(), name='specialization-list'),

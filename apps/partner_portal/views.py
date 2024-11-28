@@ -1,6 +1,6 @@
 from rest_framework import generics, status
 from .utils import haversine 
-from .models import  PartnerDetail,EmployeeOTP
+from .models import  PartnerDetail,EmployeeOTP, PartnerImage
 from .serializers import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib import redirects
@@ -12,6 +12,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.exceptions import PermissionDenied
 from .utils import split_availability
 import random
+from apps.core.models import ServiceType 
 
 
 
@@ -71,6 +72,26 @@ class GetPresignedURL(APIView):
             return Response({'url': presigned_url, 'file_key': file_key})
         else:
             return Response({'error': 'could not generate presigned URL'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class SavePartnerImage(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+
+
+    def post(self,request):
+        image_url = request.data.get('image_url')
+        partner_id = request.data.get('partner_id')
+
+        if not image_url or not partner_id:
+            return Response({'error' : 'Image or partner id are required!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            partner_image = PartnerImage.objects.create(partner_id = partner_id, image_url=image_url)
+
+            return Response({'message': 'image uploaded successfully', 'image_id': partner_image.id}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # partner create view 
@@ -274,3 +295,47 @@ class VerifyOTPAndLoginView(APIView):
         otp_record.delete()
 
         return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
+
+
+class PartnerByServiceView(APIView):
+    """
+    View to get partners by a specific service ID.
+    """
+
+    def get(self, request):
+        service_id = request.query_params.get('serviceId')
+
+        if not service_id:
+            return Response(
+                {"error": "Service ID is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Get active services matching the service ID
+            services = ServiceType.objects.filter(business_type_id=service_id, status='active')
+            if not services.exists():
+                return Response(
+                    {"error": "No active service found for the provided ID."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Get unique partners offering the service
+            partner_ids = services.values_list('partner_id', flat=True).distinct()
+            partners = PartnerDetail.objects.filter(id__in=partner_ids)
+
+            if not partners.exists():
+                return Response(
+                    {"message": "No partners found for this service."},
+                    status=status.HTTP_200_OK
+                )
+
+            # Serialize and return the data
+            serializer = PartnerDetailSerializer(partners, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)} if str(e) else {"error": "An unexpected error occurred."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

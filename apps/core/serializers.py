@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ServiceType, Service
+from .models import ServiceType, Service, Banner, Ticket
 
 
 class ServiceTypeSerializer(serializers.ModelSerializer):
@@ -30,3 +30,26 @@ class ServiceCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = ['id', 'partner', 'business_type', 'name', 'description', 'price', 'duration', 'image', 'status']
+
+
+
+class BannerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Banner
+        fields = ['id', 'title', 'description', 'image', 'start_date', 'end_date', 'is_active']
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        fields = '__all__'
+        read_only_fields = ['raised_by', 'created_at', 'updated_at']  # Prevent overwriting these
+
+    def update(self, instance, validated_data):
+        # Optional: Validate status transitions
+        if 'status' in validated_data:
+            allowed_statuses = ['Open', 'In Progress', 'Resolved']
+            if validated_data['status'] not in allowed_statuses:
+                raise serializers.ValidationError("Invalid status update.")
+        
+        return super().update(instance, validated_data)
