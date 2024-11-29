@@ -26,7 +26,7 @@ urlpatterns = [
     path('<uuid:user_id>/services/', PartnerServiceListView.as_view(), name='partner-service-list'),  # Services by partner
 
     # Service Type routes
-    path('service-types/', ServiceTypeListCreateView.as_view(), name='service-type-list-create'),
+    path('service_type/', ServiceTypeListCreateView.as_view(), name='service-type-list-create'),
 ]
 
 # Include the router-generated URLs

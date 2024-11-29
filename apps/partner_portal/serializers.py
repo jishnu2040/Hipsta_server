@@ -14,13 +14,20 @@ class PartnerSerializer(serializers.ModelSerializer):
         model = PartnerDetail
         fields = ['id', 'business_name', 'website', 'team_size', 'latitude', 'longitude', 'service_type']
 
+class PartnerImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PartnerImage
+        fields = ['id', 'image_url', 'description']
+
 class PartnerDetailSerializer(serializers.ModelSerializer):
+    images = PartnerImageSerializer(many=True, read_only=True)
+
     class Meta:
         model = PartnerDetail
         fields = [
             'id', 'user', 'business_name', 'address', 'phone', 'website', 
             'selected_services', 'team_size', 'latitude', 'longitude', 
-            'license_certificate_image'
+            'license_certificate_image', 'images'  # Add 'images' field here
         ]
         read_only_fields = ['id']
 
@@ -30,18 +37,11 @@ class PartnerDetailSerializer(serializers.ModelSerializer):
         return value
 
     def validate_selected_services(self, value):
-    # Ensure 'value' is a list of IDs and not objects
+        # Ensure 'value' is a list of IDs and not objects
         service_ids = [service_type.id for service_type in value]  # Extracting the ids
         if not ServiceType.objects.filter(id__in=service_ids).exists():
             raise serializers.ValidationError("Some service types are invalid.")
         return value
-
-
-class PartnerImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PartnerImage
-        fields = ['image_url', 'description']
-
 
 class PartnerProfileSerializer(serializers.ModelSerializer):
     selected_services = ServiceTypeSerializer(many=True, read_only=True) 

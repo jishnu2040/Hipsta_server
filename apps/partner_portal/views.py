@@ -295,7 +295,7 @@ class VerifyOTPAndLoginView(APIView):
         otp_record.delete()
 
         return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
-
+# views.py
 
 class PartnerByServiceView(APIView):
     """
@@ -312,16 +312,17 @@ class PartnerByServiceView(APIView):
             )
 
         try:
-            # Get active services matching the service ID
-            services = ServiceType.objects.filter(business_type_id=service_id, status='active')
+            # Filter ServiceType by ID (assuming service_id corresponds to the ServiceType's ID)
+            services = ServiceType.objects.filter(id=service_id)
+
             if not services.exists():
                 return Response(
-                    {"error": "No active service found for the provided ID."},
+                    {"error": "No service found for the provided ID."},
                     status=status.HTTP_404_NOT_FOUND
                 )
 
             # Get unique partners offering the service
-            partner_ids = services.values_list('partner_id', flat=True).distinct()
+            partner_ids = services.values_list('partnerdetail__id', flat=True).distinct()
             partners = PartnerDetail.objects.filter(id__in=partner_ids)
 
             if not partners.exists():
