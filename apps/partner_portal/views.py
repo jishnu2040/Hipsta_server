@@ -1,5 +1,4 @@
 from rest_framework import generics, status
-from .utils import haversine 
 from .models import  PartnerDetail,EmployeeOTP, PartnerImage
 from .serializers import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -13,45 +12,98 @@ from rest_framework.exceptions import PermissionDenied
 from .utils import split_availability
 import random
 from apps.core.models import ServiceType 
+from django.core.exceptions import ObjectDoesNotExist
 
 
+class PartnerServiceListView(APIView):
+    # permission_classes = [IsAuthenticated]
 
-
-class PartnerListView(generics.ListAPIView):
-    serializer_class = PartnerDetailSerializer
-
-    def get_queryset(self):
-        queryset = PartnerDetail.objects.all()
-        lat = self.request.query_params.get('lat')
-        lng = self.request.query_params.get('lng')
+    def get(self, request, user_id):
+        try:
+            # Find the partner by user_id
+            partner = PartnerDetail.objects.get(user_id=user_id)
+            # Filter services by the partner
+            services = Service.objects.filter(partner=partner)
+            serializer = ServiceSerializer(services, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except PartnerDetail.DoesNotExist:
+            return Response({"detail": "Partner not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        if lat and lng:
-            try:
-                lat = float(lat)
-                lng = float(lng)
-                partners_with_distance = []
-                
-                for partner in queryset:
-                    distance = haversine(lat, lng, partner.latitude, partner.longitude)  # Use latitude and longitude here
-                    partners_with_distance.append((partner, distance))
-                
-                partners_with_distance.sort(key=lambda x: x[1])  # Sort partners by distance
-                sorted_partners = [partner for partner, distance in partners_with_distance]
-                return sorted_partners
-            except ValueError:
-                pass  # If lat/lng conversion fails, do nothing
-                
-        return queryset
 
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+
+
+
+class ServiceCreateAPIView(APIView):
+    # permission_classes = [IsAuthenticated] 
+
+    def post(self, request, *args, **kwargs):
+        partner_id = request.data.get('partnerId')  # Getting partnerId from the request data
+        
+        # Ensure partnerId is provided in the request
+        if not partner_id:
+            return Response({"detail": "Partner ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if partner exists using the provided partnerId
+        try:
+            partner = PartnerDetail.objects.get(id=partner_id)
+        except ObjectDoesNotExist:
+            return Response({"detail": "Partner not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if service type exists using the provided business_type ID
+        try:
+            business_type = ServiceType.objects.get(id=request.data['business_type'])
+        except ObjectDoesNotExist:
+            return Response({"detail": "Service type not found."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Prepare data for service creation
+        data = {
+            'partner': partner.id,
+            'business_type': business_type.id,
+            'name': request.data['name'],
+            'description': request.data.get('description', ''),
+            'price': request.data['price'],
+            'duration': request.data['duration'],
+            'image': request.FILES.get('image', None),
+            'status': request.data.get('status', 'active'),  # Default to 'active' if not provided
+        }
+
+        # Validate and create the service
+        serializer = ServiceCreateSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+class ServiceUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+    lookup_field = 'id'
+    # permission_classes = [permissions.IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)  # Allow partial updates
+        instance = self.get_object()  # Retrieve the instance based on the `id`
+        
+        # Use the serializer to validate and update the data
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)  # Will raise validation errors if invalid
+        
+        self.perform_update(serializer)  # Perform the update
+
+        # Return the updated object data as the response
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def perform_update(self, serializer):
+        # Custom logic to save the updated instance
+        serializer.save()
+
+
+
 
 
 class GetPresignedURL(APIView):
@@ -295,48 +347,4 @@ class VerifyOTPAndLoginView(APIView):
         otp_record.delete()
 
         return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
-# views.py
-
-class PartnerByServiceView(APIView):
-    """
-    View to get partners by a specific service ID.
-    """
-
-    def get(self, request):
-        service_id = request.query_params.get('serviceId')
-
-        if not service_id:
-            return Response(
-                {"error": "Service ID is required."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        try:
-            # Filter ServiceType by ID (assuming service_id corresponds to the ServiceType's ID)
-            services = ServiceType.objects.filter(id=service_id)
-
-            if not services.exists():
-                return Response(
-                    {"error": "No service found for the provided ID."},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-
-            # Get unique partners offering the service
-            partner_ids = services.values_list('partnerdetail__id', flat=True).distinct()
-            partners = PartnerDetail.objects.filter(id__in=partner_ids)
-
-            if not partners.exists():
-                return Response(
-                    {"message": "No partners found for this service."},
-                    status=status.HTTP_200_OK
-                )
-
-            # Serialize and return the data
-            serializer = PartnerDetailSerializer(partners, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            return Response(
-                {"error": str(e)} if str(e) else {"error": "An unexpected error occurred."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+#

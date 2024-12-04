@@ -2,6 +2,14 @@ from rest_framework import serializers
 from .models import ServiceType, Service, Banner, Ticket
 
 
+
+class BannerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Banner
+        fields = ['id', 'title', 'description', 'image', 'start_date', 'end_date', 'is_active']
+
+
+
 class ServiceTypeSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
 
@@ -26,17 +34,6 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 
 
-class ServiceCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Service
-        fields = ['id', 'partner', 'business_type', 'name', 'description', 'price', 'duration', 'image', 'status']
-
-
-
-class BannerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Banner
-        fields = ['id', 'title', 'description', 'image', 'start_date', 'end_date', 'is_active']
 
 
 class TicketSerializer(serializers.ModelSerializer):

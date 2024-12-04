@@ -77,11 +77,6 @@ ROOT_URLCONF = 'hipsta_server.urls'
 MEDIA_URL = '/media/'  # URL for accessing media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where uploaded files are stored
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'  # URL for accessing static files
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Additional static files directories
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Directory for collected static files
-
 
 
 CORS_ALLOWED_ORIGINS = [

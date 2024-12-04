@@ -27,3 +27,47 @@ class AdminUserList(GenericAPIView):
         users = User.objects.filter(is_staff=False)
         serializer = AdminUserListSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+# User List View 
+# class UserListView(generics.ListCreateAPIView):
+#     serializer_class = UserSerializer
+#     # permission_classes = [permissions.IsAdminUser]
+
+#     def get_queryset(self):
+#         return User.objects.filter(user_type='customer',is_superuser=False)
+
+# # User Detailed View 
+# class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = User.objects.all()
+#     serializer_class = UserSerializer
+#     permission_classes = [permissions.IsAdminUser]
+
+
+# Block User 
+# class BlockUserView(APIView):
+#     permission_classes = [permissions.IsAdminUser]
+
+#     def patch(self, request, user_id):
+#         try:
+#             user = User.objects.get(pk=user_id)
+#             user.is_active =False
+#             user.save()
+#             return Response({
+#                 "message": "User blocked successfully"}, status=status.HTTP_200_OK)
+#         except User.DoesNotExist:
+#             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+# class UnblockUserView(APIView):
+#     permission_classes = [permissions.IsAdminUser]
+
+#     def patch(self, request, user_id):
+#         try:
+#             user = User.objects.get(pk=user_id)
+#             user.is_active = True
+#             user.save()
+#             return Response({"message": "User unblocked successfully"}, status=status.HTTP_200_OK)
+#         except User.DoesNotExist:
+#             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)

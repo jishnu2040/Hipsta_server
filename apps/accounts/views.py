@@ -13,7 +13,6 @@ from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str, DjangoUnicodeDecodeError
 from rest_framework import generics, permissions
-from rest_framework.views import APIView
 
 
 # Registration view
@@ -185,49 +184,6 @@ class LogoutUserView(GenericAPIView):
 
 
 
-# User List View 
-class UserListView(generics.ListCreateAPIView):
-    serializer_class = UserSerializer
-    # permission_classes = [permissions.IsAdminUser]
-
-    def get_queryset(self):
-        return User.objects.filter(user_type='customer',is_superuser=False)
-
-# User Detailed View 
-class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser]
-
-
-# Block User 
-class BlockUserView(APIView):
-    permission_classes = [permissions.IsAdminUser]
-
-    def patch(self, request, user_id):
-        try:
-            user = User.objects.get(pk=user_id)
-            user.is_active =False
-            user.save()
-            return Response({
-                "message": "User blocked successfully"}, status=status.HTTP_200_OK)
-        except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
-
-class UnblockUserView(APIView):
-    permission_classes = [permissions.IsAdminUser]
-
-    def patch(self, request, user_id):
-        try:
-            user = User.objects.get(pk=user_id)
-            user.is_active = True
-            user.save()
-            return Response({"message": "User unblocked successfully"}, status=status.HTTP_200_OK)
-        except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
-
 class GoogleSignInView(GenericAPIView):
     serializer_class= GoogleSignInSerializer
 
@@ -239,18 +195,4 @@ class GoogleSignInView(GenericAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         data = serializer.validated_data['access_token']
         return Response(data, status=status.HTTP_200_OK)
-
-
-
-
-class ProfileView(APIView):
-    # permission_classes = [IsAuthenticated]
-    
-    def get(self, request, user_id):
-        try:
-            user = User.objects.get(id=user_id)
-            serializer = ProfileSerializer(user)
-            return Response(serializer.data, status = status.HTTP_200_OK)
-        except User.DoesNotExist:
-            return Response({"error": "user not found"}, status=status.HTTP_401_UNAUTHORIZED)
 

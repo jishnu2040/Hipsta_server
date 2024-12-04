@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/v1/partner/', include('apps.partner_portal.urls')),
     path('api/v1/core/', include('apps.core.urls')),
     path('api/v1/admin/', include('apps.admin_panel.urls')),
+    path('api/v1/customer/', include('apps.customer_portal.urls'))
 ]
 
 if settings.DEBUG:

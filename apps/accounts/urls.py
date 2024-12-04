@@ -14,12 +14,4 @@ urlpatterns= [
     path('logout/', LogoutUserView.as_view(), name='logout'),
     path('google/', GoogleSignInView.as_view(), name='google' ),
 
-    # User management endpoints
-    path('users/', UserListView.as_view(), name='user-list'),  
-    path('user/<uuid:pk>/', UserDetailView.as_view(), name='user-detail'),  # Retrieve, update, delete specific user
-    path('user/<uuid:pk>/block/', BlockUserView.as_view(), name='block-user'),  
-    path('user/<uuid:pk>/unblock/', UnblockUserView.as_view(), name='unblock-user'), 
-
-    # User profile
-    path('profile/<uuid:user_id>/', ProfileView.as_view(), name='user-profile')
 ]

@@ -1,7 +1,9 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 from .views import (
-    PartnerListView,
+    ServiceCreateAPIView,
+    ServiceUpdateView,
+    PartnerServiceListView,
     PartnerAvailabilityViewSet, 
     EmployeeAvailabilityViewSet,
     EmployeeViewSet, 
@@ -12,7 +14,6 @@ from .views import (
     SpecializationListView,
     SendOTPView,
     VerifyOTPAndLoginView,
-    PartnerByServiceView
 
 )
 
@@ -24,8 +25,14 @@ router.register(r'employee-availability', EmployeeAvailabilityViewSet, basename=
 
 # Defining urlpatterns and including router URLs
 urlpatterns = [
-    path('partnerViewFilterByService/', PartnerByServiceView.as_view(), name='partners_by_service'),
-    path('partners/', PartnerListView.as_view(), name='partner-list'),
+
+
+    path('services/create/', ServiceCreateAPIView.as_view(), name='create-service'),  # Create new service at partner dash
+    path('services/<uuid:id>/', ServiceUpdateView.as_view(), name='service-detail'),  # Update or retrieve a service by ID
+    path('<uuid:user_id>/services/', PartnerServiceListView.as_view(), name='partner-service-list'), # services related to one partner
+
+
+
     # Custom employee endpoints with partner-specific actions
     path('<uuid:partner>/employees/list/', EmployeeViewSet.as_view({'get': 'list'}), name='employee-list'),
     path('<uuid:partner>/employees/create/', EmployeeViewSet.as_view({'post': 'create'}), name='employee-create'),
@@ -40,6 +47,7 @@ urlpatterns = [
 
     path('send-otp/', SendOTPView.as_view(), name='send_otp'),
     path('verify-otp/', VerifyOTPAndLoginView.as_view(), name='verify_otp'),
+
 ]
 
 # Include the router's URLs

@@ -1,8 +1,34 @@
 from rest_framework import serializers
 from .models import  PartnerDetail, PartnerImage, Employee, Specialization, PartnerAvailability, EmployeeAvailability
-from apps.core.models import ServiceType
+from apps.core.models import ServiceType, Service
 from apps.core.serializers import ServiceTypeSerializer  
 from datetime import datetime, timedelta
+
+
+
+
+class ServiceCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = ['id', 'partner', 'business_type', 'name', 'description', 'price', 'duration', 'image', 'status']
+
+
+
+
+class ServiceSerializer(serializers.ModelSerializer):
+    partner_id = serializers.UUIDField(source='partner.id', read_only=True)  # Add partner_id field
+
+    class Meta:
+        model = Service
+        fields = ['id', 'name', 'description', 'price', 'duration', 'image', 'status', 'partner_id'] 
+
+
+
+
+
+
+
+
 
 
 

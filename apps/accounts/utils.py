@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from django.conf import settings
 from google.oauth2 import id_token
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.exceptions import ValidationError
 from google.auth.transport import requests
 from rest_framework import serializers
