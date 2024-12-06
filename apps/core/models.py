@@ -53,6 +53,10 @@ class Service(models.Model):
 
     def get_duration_display(self):
         return str(self.duration)
+    
+    @property
+    def business_type_name(self):
+        return self.business_type.name if self.business_type else None
 
 
 

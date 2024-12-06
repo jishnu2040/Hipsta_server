@@ -6,6 +6,10 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+from apps.booking.models import Appointment
 
 
     
@@ -145,7 +149,19 @@ class EmployeeAvailability(models.Model):
 
     def __str__(self):
         return f"{self.employee.name} available on {self.date} at {self.start_time}"
+
+
     
+@receiver(post_save, sender=Appointment)
+def update_employee_availability(sender, instance, created, **kwargs):
+    if created:
+        # Update the availability status of the employee for the booked slot
+        EmployeeAvailability.objects.filter(
+            employee=instance.employee,
+            date=instance.date,
+            start_time=instance.start_time
+        ).update(is_booked=True)
+
 
 
 

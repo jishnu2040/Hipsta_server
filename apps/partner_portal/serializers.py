@@ -26,6 +26,10 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 
 
+class PartnerAvailabilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PartnerAvailability
+        fields = '__all__'
 
 
 
@@ -166,3 +170,5 @@ class PartnerImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartnerImage
         fields = ['partner', 'image_url', 'description']
+
+

@@ -1,9 +1,11 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 from .views import (
+    GetPartnerIDView,
     ServiceCreateAPIView,
     ServiceUpdateView,
     PartnerServiceListView,
+    PartnerAvailabilityView,
     PartnerAvailabilityViewSet, 
     EmployeeAvailabilityViewSet,
     EmployeeViewSet, 
@@ -26,11 +28,11 @@ router.register(r'employee-availability', EmployeeAvailabilityViewSet, basename=
 # Defining urlpatterns and including router URLs
 urlpatterns = [
 
-
+    path('get-partner-id/<str:user_id>/', GetPartnerIDView.as_view(), name='get-partner-id'),
     path('services/create/', ServiceCreateAPIView.as_view(), name='create-service'),  # Create new service at partner dash
     path('services/<uuid:id>/', ServiceUpdateView.as_view(), name='service-detail'),  # Update or retrieve a service by ID
     path('<uuid:user_id>/services/', PartnerServiceListView.as_view(), name='partner-service-list'), # services related to one partner
-
+    path('<uuid:partner_id>/availability/', PartnerAvailabilityView.as_view(), name='partner-availability'),
 
 
     # Custom employee endpoints with partner-specific actions

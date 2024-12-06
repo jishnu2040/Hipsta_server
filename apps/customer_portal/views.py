@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from rest_framework import generics, status
 from apps.core.models import ServiceType
 from apps.partner_portal.models import PartnerDetail
+
+
+
 class PartnerByServiceView(APIView):
     """
     View to get partners by a specific service ID.
@@ -86,3 +89,67 @@ class PartnerListView(generics.ListAPIView):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class PartnerDetailView(APIView):
+    def get(self, request, partner_id):
+        try:
+            partner = PartnerDetail.objects.get(id=partner_id)
+        except PartnerDetail.DoesNotExist:
+            return Response(
+                {'detail': 'Partner not found'}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = PartnerDetailSerializer(partner)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class ServicesView(APIView):
+    def get(self, request, *args, **kwargs):
+        partner_id = self.request.query_params.get('partnerId')
+        if not partner_id:
+            return Response({"error": "partnerId is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        services = Service.objects.filter(partner_id=partner_id, status='active')  # Filter by partnerId and status
+        serializer = ServicesSerializer(services, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class EmployeeListByPartnerView(APIView):
+    def get(self, request, partner_id):
+        # Filter employees by partner_id
+        employees = Employee.objects.filter(partner_id=partner_id, is_active=True)
+        
+        # Serialize the employees data
+        serializer = EmployeeSerializer(employees, many=True)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+class AvailableTimeSlotsView(APIView):
+    def get(self, request, employee_id):
+        date = request.query_params.get('date')
+        try:
+            availabilities = EmployeeAvailability.objects.filter(
+                employee_id=employee_id,
+                date=date,
+                is_booked=False,
+                is_unavailable=False
+            )
+            serializer = EmployeeAvailabilitySerializer(availabilities, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+class ServiceDetailView(APIView):
+    def get(self, request, service_id, format=None):
+        try:
+            # Fetch the service by ID
+            service = Service.objects.get(id=service_id)
+        except Service.DoesNotExist:
+            return Response({"detail": "Service not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize and return the service data
+        serializer = ServicesSerializer(service)
+        return Response(serializer.data, status=status.HTTP_200_OK)

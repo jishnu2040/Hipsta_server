@@ -1,5 +1,5 @@
 from rest_framework import generics, status
-from .models import  PartnerDetail,EmployeeOTP, PartnerImage
+from .models import  PartnerDetail,EmployeeOTP, PartnerImage,PartnerAvailability
 from .serializers import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib import redirects
@@ -15,6 +15,16 @@ from apps.core.models import ServiceType
 from django.core.exceptions import ObjectDoesNotExist
 
 
+
+class GetPartnerIDView(APIView):
+
+    def get(self, request, user_id):
+        try:
+            partner = PartnerDetail.objects.get(user_id=user_id)
+            return Response({"partner_id": str(partner.id)}, status=status.HTTP_200_OK)
+        except PartnerDetail.DoesNotExist:
+            return Response({"error": "Partner not found"}, status=status.HTTP_404_NOT_FOUND)
+
 class PartnerServiceListView(APIView):
     # permission_classes = [IsAuthenticated]
 
@@ -29,6 +39,17 @@ class PartnerServiceListView(APIView):
         except PartnerDetail.DoesNotExist:
             return Response({"detail": "Partner not found."}, status=status.HTTP_404_NOT_FOUND)
         
+
+class PartnerAvailabilityView(APIView):
+    def get(self, request, partner_id):
+        try:
+            availabilities = PartnerAvailability.objects.filter(partner_id=partner_id)
+            serializer = PartnerAvailabilitySerializer(availabilities, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except PartnerAvailability.DoesNotExist:
+            return Response({"error": "Partner availability not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
 
 
 
@@ -127,7 +148,7 @@ class GetPresignedURL(APIView):
         
 
 class SavePartnerImage(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
     
 
 
@@ -348,3 +369,15 @@ class VerifyOTPAndLoginView(APIView):
 
         return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
 #
+
+
+
+class ServicesView(APIView):
+    def get(self, request, *args, **kwargs):
+        partner_id = self.request.query_params.get('partnerId')
+        if not partner_id:
+            return Response({"error": "partnerId is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        services = Service.objects.filter(partner_id=partner_id, status='active')  # Filter by partnerId and status
+        serializer = ServicesSerializer(services, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
