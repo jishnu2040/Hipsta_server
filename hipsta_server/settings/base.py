@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'django_celery_results',
     'django_celery_beat',
     'django.contrib.sites',
-    'rest_framework_simplejwt.token_blacklist',  
+    'rest_framework_simplejwt.token_blacklist', 
+    'django_ratelimit', 
     
 
     # Your apps

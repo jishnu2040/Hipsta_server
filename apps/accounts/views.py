@@ -13,12 +13,20 @@ from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str, DjangoUnicodeDecodeError
 from rest_framework import generics, permissions
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 
-# Registration view
+
+# Registration View
+# This view handles user registration. It checks if the user already exists:
+# 1. If the user is already registered and verified, it returns an error.
+# 2. If the user is registered but not verified, it resends the OTP.
+# 3. For new users, it validates the data, saves the user, and sends an OTP for email verification.
 class RegisterUserView(GenericAPIView):
     serializer_class = UserRegisterSerializer
 
+    @method_decorator(ratelimit(key='ip', rate='5/m', method='ALL', burst=True))
     def post(self, request):
         email = request.data.get('email')
 
@@ -51,7 +59,8 @@ class RegisterUserView(GenericAPIView):
                 try:
                     send_code_to_user_task.delay(user['email'])
                 except Exception as e:
-                    print(f"Failed to send email task: {e}")
+                     print(f"Failed to send email task: {e}")
+                     return Response({'error': 'Failed to send verification email. Please try again later.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
                 return Response({
@@ -62,8 +71,11 @@ class RegisterUserView(GenericAPIView):
 
 
 
-# Verification View
 
+# Email Verification View
+# This view verifies the user's email using the OTP:
+# 1. It checks if the OTP exists and is not expired.
+# 2. If valid, it marks the user as verified and deletes the OTP record.
 class VerifyUserEmail(GenericAPIView):
     serializer_class = VerifyEmailSerializer
 
@@ -95,10 +107,13 @@ class VerifyUserEmail(GenericAPIView):
 
 
 # Login View
-
+# This view authenticates users based on their credentials:
+# 1. It validates the provided email and password.
+# 2. Returns an error if the credentials are invalid.
 class LoginUserView(GenericAPIView):
     serializer_class = LoginSerializer
 
+    @method_decorator(ratelimit(key='ip', rate='5/m', method='ALL', burst=True))
     def post(self, request):
         serializer = self.serializer_class(data=request.data, context ={'request': request})
 
@@ -114,10 +129,15 @@ class LoginUserView(GenericAPIView):
 
 
 
-# Password reset Request View 
+
+# Password Reset Request View
+# This view handles password reset requests:
+# 1. Checks if the provided email exists.
+# 2. Sends a password reset email if the email exists.
 class PasswordResetRequestView(GenericAPIView):
     serializer_class = PasswordResetRequestSerializer
 
+    @method_decorator(ratelimit(key='ip', rate='5/m', method='ALL', burst=True))
     def post(self, request):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         # Accessing the context data
@@ -133,11 +153,15 @@ class PasswordResetRequestView(GenericAPIView):
         # Send password reset email
         # Your logic to send the password reset email goes here
 
-        return Response({'message': 'A link has been sent to your email to reset your password'}, status=status.HTTP_200_OK)
+        return Response({'message': 'If the email exists, a password reset link has been sent.'}, status=status.HTTP_200_OK)
 
 
 
-# reset confirm logic
+
+# Password Reset Confirmation View
+# This view verifies the password reset token and user ID:
+# 1. Decodes the user ID from the URL.
+# 2. Validates the token for password reset.
 class PasswordResetConfirm(GenericAPIView):
     def get(self, request, uidb64, token):
          try:
@@ -156,7 +180,10 @@ class PasswordResetConfirm(GenericAPIView):
              return Response({'message':'credentials is invalid'},status=status.HTTP_401_UNAUTHORIZED)
 
 
-# newPassword view 
+# Set New Password View
+# This view sets a new password for the user:
+# 1. Validates the new password.
+# 2. Updates the password for the user.
 class SetnewPassword(GenericAPIView):
     serializer_class = SetnewPasswordSerializer
 
@@ -169,7 +196,10 @@ class SetnewPassword(GenericAPIView):
         return Response({'message': 'Password reset successful'}, status=status.HTTP_200_OK)
 
 
-# Logout View 
+# Logout View
+# This view logs out the authenticated user:
+# 1. Validates the logout request.
+# 2. blacklist the user's authentication tokens.
 class LogoutUserView(GenericAPIView):
     serializer_class = LogoutUserSerializer
     permission_classes = [IsAuthenticated]
@@ -183,7 +213,10 @@ class LogoutUserView(GenericAPIView):
 
 
 
-
+# Google Sign-In View
+# This view handles Google Sign-In functionality:
+# 1. Validates the Google access token.
+# 2. Returns the user's data upon successful authentication.
 class GoogleSignInView(GenericAPIView):
     serializer_class= GoogleSignInSerializer
 
