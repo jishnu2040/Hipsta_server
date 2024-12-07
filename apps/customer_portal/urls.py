@@ -1,6 +1,15 @@
 from django.urls import path
 
-from .views import PartnerByServiceView, PartnerListView, PartnerDetailView,ServicesView,EmployeeListByPartnerView, AvailableTimeSlotsView,ServiceDetailView
+from .views import (
+    PartnerByServiceView, 
+    PartnerListView, 
+    PartnerDetailView,
+    PartnerAvailabilityView,
+    ServicesView,
+    EmployeeListByPartnerView, 
+    AvailableTimeSlotsView,
+    ServiceDetailView
+)
 
 
 
@@ -8,6 +17,7 @@ urlpatterns = [
     path('partners/', PartnerListView.as_view(), name='partner-list'),
     path('partnerViewFilterByService/', PartnerByServiceView.as_view(), name='partners_by_service'),
      path('partner-detail/<uuid:partner_id>/', PartnerDetailView.as_view(), name='partner-detail'),
+     path('<uuid:partner_id>/availability/', PartnerAvailabilityView.as_view(), name='partner-availability'),
      path('service/', ServicesView.as_view(), name='partner-services'),
      path('<uuid:partner_id>/employees/', EmployeeListByPartnerView.as_view(), name='employee-list-by-partner'),
      path('employee/<uuid:employee_id>/available-times/', AvailableTimeSlotsView.as_view(), name='available-time-slots'),

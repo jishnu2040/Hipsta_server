@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.partner_portal.models import  PartnerDetail, PartnerImage, EmployeeAvailability,Employee
+from apps.partner_portal.models import  PartnerDetail, PartnerImage, EmployeeAvailability,Employee, PartnerAvailability
 from apps.core.models import ServiceType, Service
 
 
@@ -52,7 +52,24 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 
+class PartnerAvailabilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PartnerAvailability
+        fields = '__all__'
+        read_only_fields = ['partner']
 
+    def validate(self, data):
+        if data['is_weekly']:
+            if not data.get('weekday'):
+                raise serializers.ValidationError("Weekly availability requires 'weekday'.")
+        else:
+            if not data.get('specific_date'):
+                raise serializers.ValidationError("Date-specific availability requires 'specific_date'.")
+
+        if data['start_time'] >= data['end_time']:
+            raise serializers.ValidationError("Start time must be earlier than end time.")
+
+        return data
 
 
 class EmployeeAvailabilitySerializer(serializers.ModelSerializer):

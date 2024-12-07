@@ -40,19 +40,6 @@ class PartnerServiceListView(APIView):
             return Response({"detail": "Partner not found."}, status=status.HTTP_404_NOT_FOUND)
         
 
-class PartnerAvailabilityView(APIView):
-    def get(self, request, partner_id):
-        try:
-            availabilities = PartnerAvailability.objects.filter(partner_id=partner_id)
-            serializer = PartnerAvailabilitySerializer(availabilities, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except PartnerAvailability.DoesNotExist:
-            return Response({"error": "Partner availability not found"}, status=status.HTTP_404_NOT_FOUND)
-
-
-
-
-
 
 
 class ServiceCreateAPIView(APIView):
@@ -231,11 +218,6 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         except PartnerDetail.DoesNotExist:
             raise NotFound(detail="Partner not found")
         
-
-
-
-
-
 
 
 

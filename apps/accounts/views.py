@@ -13,8 +13,8 @@ from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str, DjangoUnicodeDecodeError
 from rest_framework import generics, permissions
-from django_ratelimit.decorators import ratelimit
-from django.utils.decorators import method_decorator
+# from django_ratelimit.decorators import ratelimit
+# from django.utils.decorators import method_decorator
 
 
 
@@ -26,7 +26,7 @@ from django.utils.decorators import method_decorator
 class RegisterUserView(GenericAPIView):
     serializer_class = UserRegisterSerializer
 
-    @method_decorator(ratelimit(key='ip', rate='5/m', method='ALL', burst=True))
+    # @method_decorator(ratelimit(key='ip', rate='5/m', method='ALL'))
     def post(self, request):
         email = request.data.get('email')
 
@@ -113,7 +113,7 @@ class VerifyUserEmail(GenericAPIView):
 class LoginUserView(GenericAPIView):
     serializer_class = LoginSerializer
 
-    @method_decorator(ratelimit(key='ip', rate='5/m', method='ALL', burst=True))
+    # @method_decorator(ratelimit(key='ip', rate='5/m', method='ALL'))
     def post(self, request):
         serializer = self.serializer_class(data=request.data, context ={'request': request})
 
@@ -137,7 +137,7 @@ class LoginUserView(GenericAPIView):
 class PasswordResetRequestView(GenericAPIView):
     serializer_class = PasswordResetRequestSerializer
 
-    @method_decorator(ratelimit(key='ip', rate='5/m', method='ALL', burst=True))
+    # @method_decorator(ratelimit(key='ip', rate='5/m', method='ALL'))
     def post(self, request):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         # Accessing the context data

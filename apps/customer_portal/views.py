@@ -5,7 +5,7 @@ from .serializers import *
 from rest_framework.response import Response
 from rest_framework import generics, status
 from apps.core.models import ServiceType
-from apps.partner_portal.models import PartnerDetail
+from apps.partner_portal.models import PartnerDetail, PartnerAvailability
 
 
 
@@ -103,6 +103,18 @@ class PartnerDetailView(APIView):
         serializer = PartnerDetailSerializer(partner)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+
+
+class PartnerAvailabilityView(APIView):
+    def get(self, request, partner_id):
+        try:
+            availabilities = PartnerAvailability.objects.filter(partner_id=partner_id)
+            serializer = PartnerAvailabilitySerializer(availabilities, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except PartnerAvailability.DoesNotExist:
+            return Response({"error": "Partner availability not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
 
 class ServicesView(APIView):
     def get(self, request, *args, **kwargs):

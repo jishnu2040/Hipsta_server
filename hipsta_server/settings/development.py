@@ -4,6 +4,14 @@ from .base import *
 # from celery.schedules import crontab
 # from time import sleep
 
+# this cache only for dev env dont use production 
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+#         'LOCATION': '/path/to/cache/directory',  # Make sure the directory exists
+#     }
+# }
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
