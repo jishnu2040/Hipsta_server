@@ -15,7 +15,7 @@ class PartnerByServiceView(APIView):
     """
 
     def get(self, request):
-        service_id = request.query_params.get('serviceId')
+        service_id = request.query_params.get('serviceTypeId')
 
         if not service_id:
             return Response(
@@ -24,7 +24,6 @@ class PartnerByServiceView(APIView):
             )
 
         try:
-            # Filter ServiceType by ID (assuming service_id corresponds to the ServiceType's ID)
             services = ServiceType.objects.filter(id=service_id)
 
             if not services.exists():
@@ -52,6 +51,59 @@ class PartnerByServiceView(APIView):
                 {"error": str(e)} if str(e) else {"error": "An unexpected error occurred."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+
+class PartnerFilterView(APIView):
+    def get(self, request):
+        # Extract query parameters
+        service_type_id = request.query_params.get('serviceTypeId')
+        location = request.query_params.get('location')
+
+        # Validate parameters
+        if not service_type_id or not location:
+            return Response(
+                {"error": "serviceTypeId and location are required query parameters"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            # Split location into latitude and longitude
+            lat, lng = map(float, location.split(","))
+
+            # Filter partners based on serviceTypeId
+            partners = PartnerDetail.objects.filter(
+                services__id=service_type_id  # Assuming 'services' is a ManyToMany relationship
+            ).distinct()
+
+            # Calculate distances and sort
+            partners_with_distance = [
+                {
+                    "partner": partner,
+                    "distance": haversine(lat, lng, partner.latitude, partner.longitude),
+                }
+                for partner in partners
+            ]
+            sorted_partners = sorted(partners_with_distance, key=lambda x: x["distance"])
+
+            # Extract sorted partners
+            sorted_partners = [item["partner"] for item in sorted_partners]
+
+            # Serialize the response
+            serializer = PartnerDetailSerializer(sorted_partners, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except ValueError:
+            return Response(
+                {"error": "Invalid location format. Expected 'lat,lng'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"An unexpected error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
 
 
 class PartnerListView(generics.ListAPIView):

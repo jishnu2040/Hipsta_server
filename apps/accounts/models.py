@@ -19,6 +19,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     USER_TYPE_CHOICES = (
         ('customer', 'Customer'),
         ('partner', 'Business Partner'),
+        ('admin', 'Admin'), 
     )
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) 

@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     PartnerByServiceView, 
     PartnerListView, 
+    PartnerFilterView,
     PartnerDetailView,
     PartnerAvailabilityView,
     ServicesView,
@@ -16,6 +17,7 @@ from .views import (
 urlpatterns = [
     path('partners/', PartnerListView.as_view(), name='partner-list'),
     path('partnerViewFilterByService/', PartnerByServiceView.as_view(), name='partners_by_service'),
+     path('partner-filter/', PartnerFilterView.as_view(), name='partner-filter'),
      path('partner-detail/<uuid:partner_id>/', PartnerDetailView.as_view(), name='partner-detail'),
      path('<uuid:partner_id>/availability/', PartnerAvailabilityView.as_view(), name='partner-availability'),
      path('service/', ServicesView.as_view(), name='partner-services'),
