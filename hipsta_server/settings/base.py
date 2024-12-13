@@ -26,6 +26,10 @@ SECRET_KEY = env('SECRET_KEY')
 INSTALLED_APPS = [
 
     # Django default apps
+    
+    "daphne",
+
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -34,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Third-party dependencies
+
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -53,8 +58,28 @@ INSTALLED_APPS = [
     'apps.notifications',      
     'apps.analytics',        
     'apps.core', 
-    'apps.admin_panel'
+    'apps.admin_panel',
+    'apps.tickets'
 ]
+
+
+# INSTALLED_APPS += [
+#     'channels',
+# ]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
+
+
+
+
+
 
 SITE_ID = 1
  
@@ -147,6 +172,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'hipsta_server.wsgi.application'
+
+ASGI_APPLICATION = 'hipsta_server.asgi.application'
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'

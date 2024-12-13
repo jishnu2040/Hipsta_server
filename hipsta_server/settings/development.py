@@ -13,6 +13,10 @@ from .base import *
 # }
 
 
+# hipsta_server/settings/development.py
+ASGI_APPLICATION = 'hipsta_server.asgi.application'
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 

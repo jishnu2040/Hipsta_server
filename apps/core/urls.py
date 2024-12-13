@@ -1,15 +1,10 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 from .views import ( 
-    TicketViewSet,
     BannerView,
     ServiceTypeListCreateView,
     ServiceListView,
 )
-
-# DefaultRouter for viewsets
-router = DefaultRouter()
-router.register(r'tickets', TicketViewSet, basename='ticket')
 
 urlpatterns = [
     # Banner routes
@@ -20,5 +15,3 @@ urlpatterns = [
     path('service_type/', ServiceTypeListCreateView.as_view(), name='service-type-list-create'),
 ]
 
-# Include the router-generated URLs
-urlpatterns += router.urls

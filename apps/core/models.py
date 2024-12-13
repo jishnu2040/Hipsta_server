@@ -77,34 +77,3 @@ class Banner(models.Model):
 
 
 
-
-class Ticket(models.Model):
-    TICKET_TYPE_CHOICES = [
-        ('User', 'User Issue'),
-        ('Partner', 'Partner Issue'),
-    ]
-    CATEGORY_CHOICES = [
-        ('Payment', 'Payment Issue'),
-        ('Technical', 'Technical Issue'),
-        ('Policy', 'Policy Question'),
-        ('Complaint', 'Complaint'),
-    ]
-    STATUS_CHOICES = [
-        ('Open', 'Open'),
-        ('In Progress', 'In Progress'),
-        ('Resolved', 'Resolved'),
-        ('Closed', 'Closed'),
-    ]
-
-    ticket_type = models.CharField(max_length=10, choices=TICKET_TYPE_CHOICES)
-    raised_by = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
-    subject = models.CharField(max_length=255)
-    description = models.TextField()
-    image = models.ImageField(upload_to='ticket_images/', null=True, blank=True)  # Optional image field
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.subject} ({self.get_status_display()})"

@@ -13,6 +13,7 @@ urlpatterns = [
     path('api/v1/admin/', include('apps.admin_panel.urls')),
     path('api/v1/customer/', include('apps.customer_portal.urls')),
     path('api/v1/booking/', include('apps.booking.urls')),
+    path('api/v1/ticket/', include('apps.tickets.urls'))
 ]
 
 if settings.DEBUG:

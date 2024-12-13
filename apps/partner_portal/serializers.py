@@ -155,3 +155,25 @@ class PartnerImageSerializer(serializers.ModelSerializer):
         fields = ['partner', 'image_url', 'description']
 
 
+
+
+
+# serializers.py
+from rest_framework import serializers
+from .models import PartnerHoliday
+
+class PartnerHolidaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PartnerHoliday
+        fields = ['id', 'partner', 'date', 'description']
+        read_only_fields = ['id']
+
+    def create(self, validated_data):
+        partner = validated_data.get('partner')
+        return PartnerHoliday.objects.create(**validated_data)
+
+
+class HolidaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PartnerHoliday
+        fields = ['id', 'date', 'description']

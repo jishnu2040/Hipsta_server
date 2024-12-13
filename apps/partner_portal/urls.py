@@ -15,6 +15,8 @@ from .views import (
     SpecializationListView,
     SendOTPView,
     VerifyOTPAndLoginView,
+    AddPartnerHolidayView,
+    PartnerHolidayView
 
 )
 
@@ -31,7 +33,8 @@ urlpatterns = [
     path('services/create/', ServiceCreateAPIView.as_view(), name='create-service'),  # Create new service at partner dash
     path('services/<uuid:id>/', ServiceUpdateView.as_view(), name='service-detail'),  # Update or retrieve a service by ID
     path('<uuid:user_id>/services/', PartnerServiceListView.as_view(), name='partner-service-list'), # services related to one partner
-
+    path('add-holiday/', AddPartnerHolidayView.as_view(), name='add-partner-holiday'),
+    path('<uuid:partner_id>/holidays/', PartnerHolidayView.as_view(), name='partner-holidays'),
 
     # Custom employee endpoints with partner-specific actions
     path('<uuid:partner>/employees/list/', EmployeeViewSet.as_view({'get': 'list'}), name='employee-list'),

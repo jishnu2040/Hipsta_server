@@ -361,5 +361,59 @@ class ServicesView(APIView):
             return Response({"error": "partnerId is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         services = Service.objects.filter(partner_id=partner_id, status='active')  # Filter by partnerId and status
-        serializer = ServicesSerializer(services, many=True)
+        serializer = ServiceSerializer(services, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+# views.py
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import PartnerHoliday, PartnerDetail
+from .serializers import PartnerHolidaySerializer
+from rest_framework.permissions import IsAuthenticated
+
+class AddPartnerHolidayView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        """
+        Allows the partner to add a holiday.
+        The partner ID is expected to be in the request body.
+        """
+        partner_id = request.data.get('partner')
+        date = request.data.get('date')
+        description = request.data.get('description', '')
+
+        if not partner_id or not date:
+            return Response({"detail": "Partner ID and date are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            partner = PartnerDetail.objects.get(id=partner_id)
+        except PartnerDetail.DoesNotExist:
+            return Response({"detail": "Partner not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        holiday = PartnerHoliday.objects.create(partner=partner, date=date, description=description)
+        serializer = PartnerHolidaySerializer(holiday)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+# apps/partner_portal/views.py
+# from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import PartnerHoliday, PartnerDetail
+from .serializers import HolidaySerializer
+
+class PartnerHolidayView(APIView):
+    def get(self, request, partner_id):
+        # Ensure partner exists
+        # get_object_or_404(PartnerDetail, id=partner_id)
+        
+        # Fetch holidays for the partner
+        holidays = PartnerHoliday.objects.filter(partner_id=partner_id)
+        serializer = HolidaySerializer(holidays, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
