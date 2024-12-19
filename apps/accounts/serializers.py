@@ -44,9 +44,15 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
+
+
+
 # Serializer for Email Verification
 class VerifyEmailSerializer(serializers.Serializer):
-    otp = serializers.CharField()  # Field to capture the OTP for email verification
+    otp = serializers.CharField() 
+
+
+
 
 # Serializer for User Login
 class LoginSerializer(serializers.ModelSerializer):
@@ -107,6 +113,7 @@ class PasswordResetRequestSerializer(serializers.ModelSerializer):
             }
             send_normal_email(data)
         return super().validate(attrs)
+
 
 # Serializer for Setting New Password
 class SetnewPasswordSerializer(serializers.ModelSerializer):

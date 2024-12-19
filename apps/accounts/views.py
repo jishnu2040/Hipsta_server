@@ -188,8 +188,7 @@ class SetnewPassword(GenericAPIView):
     serializer_class = SetnewPasswordSerializer
 
     def patch(self, request):
-        # Print the request data to the console
-        print("Request Data:", request.data)
+        
 
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)

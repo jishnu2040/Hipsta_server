@@ -11,14 +11,15 @@ class PartnerImageSerializer(serializers.ModelSerializer):
 
 class PartnerDetailSerializer(serializers.ModelSerializer):
     image_slides = PartnerImageSerializer(many=True, read_only=True)
-    service_names = serializers.SerializerMethodField()  # Custom field for service names
+    service_names = serializers.SerializerMethodField()
+    top_services = serializers.SerializerMethodField()  # New method field for top services
 
     class Meta:
         model = PartnerDetail
         fields = [
             'id', 'user', 'business_name', 'address', 'phone', 'website', 
-            'selected_services', 'team_size', 'latitude', 'longitude', 
-            'license_certificate_image', 'image_slides', 'service_names'
+            'selected_services', 'team_size', 'image_slides', 'service_names', 'top_services',
+            'latitude', 'longitude'
         ]
         read_only_fields = ['id']
 
@@ -26,6 +27,18 @@ class PartnerDetailSerializer(serializers.ModelSerializer):
         # Get the selected services for the partner and extract their names
         service_types = obj.selected_services.all()
         return [service.name for service in service_types]
+
+    def get_top_services(self, obj):
+        # Fetch the first 3 active services for this partner
+        services = obj.services.filter(status='active')[:3]
+        return [
+            {
+                'name': service.name,
+                'price': service.formatted_price(),  # Format price as per model method
+                'duration': service.get_duration_display(),  # Format duration
+            }
+            for service in services
+        ]
 
     def validate_user(self, value):
         if PartnerDetail.objects.filter(user=value).exists():

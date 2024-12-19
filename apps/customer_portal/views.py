@@ -73,7 +73,7 @@ class PartnerFilterView(APIView):
 
             # Filter partners based on serviceTypeId
             partners = PartnerDetail.objects.filter(
-                services__id=service_type_id  # Assuming 'services' is a ManyToMany relationship
+                services__id=service_type_id  
             ).distinct()
 
             # Calculate distances and sort
