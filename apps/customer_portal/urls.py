@@ -9,7 +9,9 @@ from .views import (
     ServicesView,
     EmployeeListByPartnerView, 
     AvailableTimeSlotsView,
-    ServiceDetailView
+    ServiceDetailView,
+    LockSlotView,
+    ReleaseSlotView
 )
 
 
@@ -24,5 +26,7 @@ urlpatterns = [
      path('<uuid:partner_id>/employees/', EmployeeListByPartnerView.as_view(), name='employee-list-by-partner'),
      path('employee/<uuid:employee_id>/available-times/', AvailableTimeSlotsView.as_view(), name='available-time-slots'),
      path('service/<uuid:service_id>/', ServiceDetailView.as_view(), name='service-detail'),  # Adjust path as needed
+     path('lock-slot/', LockSlotView.as_view(),name='lock-slot'),
+     path('release-slot/', ReleaseSlotView.as_view(), name='release-slot'),
 
 ]

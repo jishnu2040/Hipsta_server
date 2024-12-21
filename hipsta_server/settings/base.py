@@ -215,6 +215,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.accounts.tasks.delete_expired_otps',  
         'schedule': crontab(hour=20, minute=18), 
     },
+    'release-expired-locks-every-10-seconds': {
+        'task': 'apps.customer_portal.tasks.release_expired_locks',
+        'schedule': 10.0,
+    },
 }
 
 # map 

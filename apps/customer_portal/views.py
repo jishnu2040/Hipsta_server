@@ -5,7 +5,7 @@ from .serializers import *
 from rest_framework.response import Response
 from rest_framework import generics, status
 from apps.core.models import ServiceType
-from apps.partner_portal.models import PartnerDetail, PartnerAvailability
+from apps.partner_portal.models import PartnerDetail, PartnerAvailability,EmployeeAvailability
 
 
 
@@ -217,3 +217,55 @@ class ServiceDetailView(APIView):
         # Serialize and return the service data
         serializer = ServicesSerializer(service)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+class LockSlotView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = SlotLockSerializer(data=request.data)
+        if serializer.is_valid():
+            slot_id = serializer.validated_data.get('slot_id')
+            lock_duration = serializer.validated_data.get('lock_duration', 1) 
+            try:
+                slot = EmployeeAvailability.objects.get(id=slot_id)
+
+                if slot.is_locked:
+                    return Response({'detail': 'Slot is already locked.'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Lock the slot
+                slot.lock_slot(lock_duration)
+                return Response({'detail': 'Slot locked successfully.'}, status=status.HTTP_200_OK)
+
+            except EmployeeAvailability.DoesNotExist:
+                return Response({'detail': 'Slot not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ReleaseSlotView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = SlotLockSerializer(data=request.data)
+        if serializer.is_valid():
+            slot_id = serializer.validated_data.get('slot_id')
+
+            try:
+                slot = EmployeeAvailability.objects.get(id=slot_id)
+                print(slot)
+
+                if not slot.is_locked:
+                    return Response({'detail': 'Slot is not locked.'}, status=status.HTTP_400_BAD_REQUEST)
+
+                else:
+                    slot.release_lock()
+                    return Response({'detail': 'Lock expired and released.'}, status=status.HTTP_200_OK)
+
+                # return Response({'detail': 'Lock not expired yet.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            except EmployeeAvailability.DoesNotExist:
+                return Response({'detail': 'Slot not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

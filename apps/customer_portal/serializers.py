@@ -94,10 +94,17 @@ class PartnerAvailabilitySerializer(serializers.ModelSerializer):
 class EmployeeAvailabilitySerializer(serializers.ModelSerializer):
     class Meta:
         model = EmployeeAvailability
-        fields = ['id', 'start_time', 'end_time', 'is_booked']
+        fields = ['id', 'start_time', 'end_time', 'is_booked', 'is_locked']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['start_time'] = instance.start_time.strftime('%H:%M')
         data['end_time'] = instance.end_time.strftime('%H:%M')
         return data
+
+
+
+    
+class SlotLockSerializer(serializers.Serializer):
+    slot_id = serializers.IntegerField(required=True)
+    lock_duration = serializers.IntegerField(required=False, min_value=1, max_value=1440)  # Duration in minutes (default max: 24 hours)

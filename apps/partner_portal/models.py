@@ -5,7 +5,6 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -97,15 +96,19 @@ class EmployeeOTP(models.Model):
 
 
 
-
+from django.db import models
+import datetime
+from django.utils import timezone
 
 class EmployeeAvailability(models.Model):
-    employee = models.ForeignKey('Employee',related_name="availabilities", on_delete=models.CASCADE, db_index=True)
-    date = models.DateField(verbose_name=_("Date"), db_index=True)
-    start_time = models.TimeField(verbose_name=_("Start Time"),db_index=True)
-    duration = models.DurationField(verbose_name=_("Duration"))
-    is_booked = models.BooleanField(default=False, verbose_name=_("Is Booked"))
-    is_unavailable = models.BooleanField(default=False, verbose_name=_("Is Unavailable"))  # Manual overrides for unavailable times
+    employee = models.ForeignKey('Employee', related_name="availabilities", on_delete=models.CASCADE, db_index=True)
+    date = models.DateField(verbose_name="Date", db_index=True)
+    start_time = models.TimeField(verbose_name="Start Time", db_index=True)
+    duration = models.DurationField(verbose_name="Duration")
+    is_booked = models.BooleanField(default=False, verbose_name="Is Booked")
+    is_unavailable = models.BooleanField(default=False, verbose_name="Is Unavailable")  
+    is_locked = models.BooleanField(default=False, verbose_name="Is Locked") 
+    locked_until = models.DateTimeField(null=True, blank=True, verbose_name="Locked Until") 
 
     class Meta:
         indexes = [
@@ -137,20 +140,41 @@ class EmployeeAvailability(models.Model):
             partner_availabilities = [date_override]
 
         if not partner_availabilities:
-            raise ValidationError(_("No partner availability for the given date and weekday"))
+            raise ValidationError("No partner availability for the given date and weekday")
 
         for partner_availability in partner_availabilities:
             # Check if the employee's time slot fits within the partner's available time slot
             if self.start_time < partner_availability.start_time or self.end_time > partner_availability.end_time:
-                raise ValidationError(_("Employee's availability must fall within partner's availability for the same time."))
+                raise ValidationError("Employee's availability must fall within partner's availability for the same time.")
 
     def get_weekday(self, date):
         return date.strftime("%A").lower()
 
     def __str__(self):
         return f"{self.employee.name} available on {self.date} at {self.start_time}"
+    
 
 
+
+
+    def lock_slot(self, lock_duration_minutes=1):
+        now = timezone.now()
+        self.is_locked = True
+        self.locked_until = now + datetime.timedelta(minutes=lock_duration_minutes)
+        self.save()
+
+    def release_lock(self):
+        if self.is_locked:
+            self.is_locked = False
+            self.locked_until = None
+            self.save()
+
+    def release_lock_if_expired(self):
+        if self.is_locked and self.locked_until <= timezone.now():
+            self.release_lock()
+
+
+            
     
 @receiver(post_save, sender=Appointment)
 def update_employee_availability(sender, instance, created, **kwargs):
