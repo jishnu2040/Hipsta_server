@@ -70,7 +70,6 @@ service-identity==24.2.0
 six==1.16.0
 social-auth-core==4.5.4
 sqlparse==0.5.1
-stripe==11.3.0
 Twisted==24.11.0
 txaio==23.1.1
 typing_extensions==4.12.2

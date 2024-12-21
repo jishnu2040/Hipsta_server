@@ -215,9 +215,9 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.accounts.tasks.delete_expired_otps',  
         'schedule': crontab(hour=20, minute=18), 
     },
-    'release-expired-locks-every-10-seconds': {
+    'release-expired-locks-every-30-seconds': {
         'task': 'apps.customer_portal.tasks.release_expired_locks',
-        'schedule': 10.0,
+        'schedule': 30.0,
     },
 }
 
@@ -233,7 +233,3 @@ AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
 AWS_REGION = env('AWS_REGION', default='us-east-1')
 
-# settings.py
-STRIPE_TEST_PUBLIC_KEY = env('STRIPE_TEST_PUBLIC_KEY')
-
-STRIPE_TEST_SECRET_KEY = env('STRIPE_TEST_SECRET_KEY')

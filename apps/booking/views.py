@@ -1,77 +1,48 @@
-# booking/views.py
-import stripe
 from django.conf import settings
-from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
 from .models import Appointment
-from .serializers import AppointmentSerializer,PartnerAppointmentSerializer,EmployeeSerializer
+from .serializers import AppointmentSerializer,PartnerAppointmentSerializer
 from .models import Appointment
 from apps.partner_portal.models import  Employee,EmployeeAvailability
 from apps.core.models import Service
 from rest_framework import status
-
-stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
-
-class CreatePaymentIntent(APIView):
-    # permission_classes = [IsAuthenticated]  # Make sure the user is authenticated
-
-    def post(self, request):
-        try:
-            # Get the total amount for the appointment
-            total_amount = request.data.get('total_amount')  # Assuming this is passed in request
-
-            # Create a PaymentIntent with the total amount (convert to cents for Stripe)
-            payment_intent = stripe.PaymentIntent.create(
-                amount=int(total_amount * 100),  # Stripe expects the amount in cents
-                currency='usd',  # Replace with your desired currency
-                metadata={'integration_check': 'accept_a_payment'},
-            )
-
-            return JsonResponse({
-                'clientSecret': payment_intent.client_secret
-            })
-
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-
-
-
-
 from datetime import datetime
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
 
-from .serializers import AppointmentSerializer
 
 class BookAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        service_id = request.data.get("service_id")
-        employee_id = request.data.get("employee_id")
+        # Extract data from request
+        service_id = request.data.get("serviceId")
+        employee_id = request.data.get("employee", {}).get("id")
         date = request.data.get("date")
-        start_time_str = request.data.get("start_time")
-        total_amount = request.data.get("total_amount")
-        payment_method = request.data.get("payment_method")
+        start_time_str = request.data.get("timeSlot", {}).get("start_time")
+        total_amount = request.data.get("totalAmount")
+        notes = request.data.get("notes", "")
+        payment_method = request.data.get("payment_method", "direct")
 
         # Convert start_time to datetime.time object
-        start_time = datetime.strptime(start_time_str, "%H:%M").time()
+        try:
+            start_time = datetime.strptime(start_time_str, "%H:%M").time()
+        except (ValueError, TypeError):
+            return Response({"error": "Invalid time format."}, status=400)
 
         # Fetch the service, employee, and availability
-        service = Service.objects.get(id=service_id)
-        employee = Employee.objects.get(id=employee_id)
+        service = get_object_or_404(Service, id=service_id)
+        employee = get_object_or_404(Employee, id=employee_id)
         availability = EmployeeAvailability.objects.filter(
             employee=employee, date=date, start_time=start_time
         ).first()
 
+        # Check availability
         if not availability or availability.is_booked:
             return Response({"error": "Selected time slot is unavailable."}, status=400)
-        
+
         # Create the appointment
         appointment = Appointment.objects.create(
             customer=request.user,
@@ -79,21 +50,21 @@ class BookAppointmentView(APIView):
             employee=employee,
             service=service,
             date=date,
-            start_time=start_time,  # Pass the correct time format
-            duration=service.duration,  # Assuming the service has a duration field
+            notes=notes,
+            start_time=start_time,
+            duration=service.duration,  # Assuming Service model has a duration field
             total_amount=total_amount,
             payment_method=payment_method,
-            status='booked'  # Set status to booked initially
+            status='booked'  
         )
 
-        # Update the availability status of the employee
+        # Update availability status
         availability.is_booked = True
         availability.save()
 
+        # Serialize and return the created appointment
         return Response(AppointmentSerializer(appointment).data, status=201)
 
-
-from uuid import UUID
 
 class PartnerAppointmentsView(APIView):
     def get(self, request, partner_id):
