@@ -9,6 +9,8 @@ from apps.partner_portal.models import PartnerDetail, PartnerAvailability,Employ
 
 
 
+
+
 class PartnerByServiceView(APIView):
     """
     View to get partners by a specific service ID.

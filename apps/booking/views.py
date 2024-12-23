@@ -11,7 +11,7 @@ from apps.core.models import Service
 from rest_framework import status
 from datetime import datetime
 from django.shortcuts import get_object_or_404
-
+from .tasks import send_booking_confirmation_email
 
 class BookAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -61,6 +61,11 @@ class BookAppointmentView(APIView):
         # Update availability status
         availability.is_booked = True
         availability.save()
+
+
+        # Example of calling the task asynchronously
+        send_booking_confirmation_email.delay(appointment.id)
+
 
         # Serialize and return the created appointment
         return Response(AppointmentSerializer(appointment).data, status=201)
