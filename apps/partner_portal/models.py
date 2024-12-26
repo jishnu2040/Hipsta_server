@@ -1,6 +1,8 @@
 import uuid
 import datetime
 from datetime import date
+from django.utils.timezone import now
+from datetime import timedelta
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
@@ -26,6 +28,7 @@ class PartnerDetail(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     license_certificate_image = models.CharField(max_length=255, null=True)
+    subscription = models.OneToOneField('partner_portal.Subscription', on_delete=models.SET_NULL, null=True, blank=True, related_name='partner_subscription')
 
     def __str__(self):
         return self.business_name
@@ -212,5 +215,37 @@ class PartnerHoliday(models.Model):
         return f"Holiday on {self.date} for {self.partner.business_name}"
 
 
+class SubscriptionPlan(models.Model):
+    name = models.CharField(max_length=100, verbose_name=_("Plan Name"))
+    duration_days = models.PositiveIntegerField(verbose_name=_("Duration (in days)"))
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_("Price"))
+    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=_("Discount (%)"))
+
+    def __str__(self):
+        return f"{self.name} - ₹{self.price}"
 
 
+
+class Subscription(models.Model):
+    partner = models.OneToOneField('partner_portal.PartnerDetail', on_delete=models.CASCADE, related_name='subscription_detail')
+    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Subscription Plan"))
+    status = models.CharField(max_length=20, choices=[("active", "Active"), ("expired", "Expired")], default="active")
+    start_date = models.DateField(auto_now_add=True, verbose_name=_("Start Date"))
+    end_date = models.DateField(null=True, blank=True)
+
+    def activate(self):
+        """Activate subscription based on the selected plan."""
+        if self.plan:
+            self.status = "active"
+            self.start_date = now().date()
+            self.end_date = self.start_date + timedelta(days=self.plan.duration_days)
+            self.save()
+
+    def check_expiry(self):
+        """Mark the subscription as expired if past the end date."""
+        if self.end_date and self.end_date < now().date():
+            self.status = "expired"
+            self.save()
+
+    def __str__(self):
+        return f"{self.partner.business_name} - {self.status} subscription"

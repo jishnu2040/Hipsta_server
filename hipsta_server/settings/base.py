@@ -139,6 +139,10 @@ CORS_ALLOW_HEADERS = [
 ]
 
 
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:5173',
+]
+
 AUTH_USER_MODEL = 'accounts.User'
 
 REST_FRAMEWORK = {
@@ -219,6 +223,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.customer_portal.tasks.release_expired_locks',
         'schedule': 30.0,
     },
+    'automate_subscription_expiry': {
+        'task': 'apps.partner_portal.tasks.expire_subscriptions',
+        'schedule': crontab(hour=0, minute=0),
+    }
 }
 
 # map 
@@ -233,3 +241,6 @@ AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
 AWS_REGION = env('AWS_REGION', default='us-east-1')
 
+
+RAZORPAY_KEY_ID = 'rzp_test_c3ulzNcBkio9UQ'
+RAZORPAY_KEY_SECRET = 'xxNLpqMrCuZ2AhOsOMTxxWtp'

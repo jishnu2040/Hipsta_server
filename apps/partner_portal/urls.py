@@ -16,7 +16,8 @@ from .views import (
     SendOTPView,
     VerifyOTPAndLoginView,
     AddPartnerHolidayView,
-    PartnerHolidayView
+    PartnerHolidayView,
+    RenewSubscriptionView,
 
 )
 
@@ -50,6 +51,7 @@ urlpatterns = [
 
     path('send-otp/', SendOTPView.as_view(), name='send_otp'),
     path('verify-otp/', VerifyOTPAndLoginView.as_view(), name='verify_otp'),
+    path('renew-subscription/' , RenewSubscriptionView.as_view(), name='renew_subscription'),
 
 ]
 

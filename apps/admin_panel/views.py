@@ -8,7 +8,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework import generics
 
-
 # Create your views here.
 class AdminLogin(generics.CreateAPIView):
     serializer_class = AdminLoginSerializer
@@ -71,3 +70,11 @@ class AdminUserList(GenericAPIView):
 #             return Response({"message": "User unblocked successfully"}, status=status.HTTP_200_OK)
 #         except User.DoesNotExist:
 #             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class SubscriptionPlanListView(generics.ListCreateAPIView):
+
+
+    serializer_class = SubscriptionPlanSerializer
+    queryset = SubscriptionPlan.objects.all()
+    # permission_classes = [IsAuthenticated, IsAdminUser]

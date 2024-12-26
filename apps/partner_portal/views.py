@@ -1,5 +1,5 @@
 from rest_framework import generics, status
-from .models import  PartnerDetail,EmployeeOTP, PartnerImage,PartnerAvailability
+from .models import  PartnerDetail,EmployeeOTP, PartnerImage,PartnerAvailability, Subscription
 from .serializers import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib import redirects
@@ -20,8 +20,20 @@ class GetPartnerIDView(APIView):
 
     def get(self, request, user_id):
         try:
+            # Get the partner based on user_id
             partner = PartnerDetail.objects.get(user_id=user_id)
-            return Response({"partner_id": str(partner.id)}, status=status.HTTP_200_OK)
+            
+            # Check if a subscription already exists for this partner
+            subscription = Subscription.objects.filter(partner_id=partner.id).first()
+            
+            # If no subscription exists, create a new one
+            # if not subscription:
+                # subscription = Subscription.objects.create(partner_id=partner.id)
+
+            # If subscription exists, return its details or notify accordingly
+            print(subscription)
+            return Response({"partner_id": str(partner.id), "subscription_status": subscription.status}, status=status.HTTP_200_OK)
+
         except PartnerDetail.DoesNotExist:
             return Response({"error": "Partner not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -417,3 +429,28 @@ class PartnerHolidayView(APIView):
         holidays = PartnerHoliday.objects.filter(partner_id=partner_id)
         serializer = HolidaySerializer(holidays, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+class RenewSubscriptionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        partner = PartnerDetail.objects.get(user=request.user)
+        subscription = partner.subscription
+
+
+        if subscription.status == "activate":
+            return Response({"error": "Subscription is already active."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+        subscription.activate(duration=30) 
+        return Response({
+            "message": "Subscription renewed successfully.",
+            "status": subscription.status,
+            "start_date": subscription.start_date,
+            "end_date": subscription.end_date
+        }, status=200)

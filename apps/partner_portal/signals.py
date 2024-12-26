@@ -1,7 +1,20 @@
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Appointment, EmployeeAvailability
+from django.utils.timezone import now
+from datetime import timedelta
+from .models import Appointment, EmployeeAvailability, Subscription
+
+
+def create_free_trail_subscription(sender, instance, created, **kwargs):
+    if created:
+        # Create a free trail subscription for the user
+        Subscription.objects.create(partner = instance, start_date=now().date(), end_date=now().date() + timedelta(days=30))
+
+
+
+        
+                
 
 @receiver(post_save, sender=Appointment)
 def update_employee_availability(sender, instance, created, **kwargs):

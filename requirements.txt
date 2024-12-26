@@ -47,6 +47,7 @@ jmespath==1.0.1
 kombu==5.4.2
 msgpack==1.1.0
 oauthlib==3.2.2
+payu-websdk==0.1.7
 pillow==11.0.0
 prompt_toolkit==3.0.48
 proto-plus==1.25.0
@@ -61,6 +62,8 @@ pyparsing==3.2.0
 python-crontab==3.2.0
 python-dateutil==2.9.0.post0
 python3-openid==3.2.0
+qrcode==8.0
+razorpay==1.4.2
 redis==5.2.0
 requests==2.32.3
 requests-oauthlib==2.0.0

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from apps.accounts.models import User
 from django.contrib.auth import authenticate
 from rest_framework.exceptions import AuthenticationFailed
+from apps.partner_portal.models import SubscriptionPlan
 
 class AdminLoginSerializer(serializers.ModelSerializer): 
     email = serializers.EmailField(max_length=255)
@@ -59,5 +60,26 @@ class UserStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['is_active']
+
+
+
+class SubscriptionPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubscriptionPlan
+        fields = '__all__'
+        extra_kwargs = {
+            'created_at': {'read_only': True},
+            'updated_at': {'read_only': True},
+        }
+    
+    def create(self, validated_data):
+        return SubscriptionPlan.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.price = validated_data.get('price', instance.price)
+        instance.duration = validated_data.get('duration', instance.duration)
+        instance.save()
+        return instance
 
 
