@@ -1,43 +1,84 @@
 # consumers.py
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
+from urllib.parse import parse_qs
+from channels.db import database_sync_to_async
+from rest_framework_simplejwt.tokens import AccessToken
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import get_user_model
+from .models import ChatMessage
+from datetime import datetime
+
+
+User = get_user_model()
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.ticket_id = self.scope['url_route']['kwargs']['ticket_id']
         self.room_group_name = f'chat_{self.ticket_id}'
 
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-        await self.accept()
+        # Parse the query string
+        query_params = parse_qs(self.scope['query_string'].decode())
+        token = query_params.get('token', [None])[0]
 
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        if token:
+            user = await self.get_user_from_token(token)
+            self.scope['user'] = user
+        else:
+            self.scope['user'] = AnonymousUser()
+
+        # Accept connection only for authenticated users
+        if self.scope['user'].is_authenticated:
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+            await self.accept()
+        else:
+            await self.close()
+
+    @database_sync_to_async
+    def get_user_from_token(self, token):
+        try:
+            validated_token = AccessToken(token)
+            user_id = validated_token['user_id']
+            return User.objects.get(id=user_id)
+        except Exception as e:
+            # Log the exception (optional)
+            print(f"Token validation error: {e}")
+            return AnonymousUser()
+
+        async def disconnect(self, close_code):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        message = data['message']
-        
-        # Check if the user is authenticated before accessing 'first_name'
-        if self.scope['user'].is_authenticated:
-            sender = self.scope['user'].first_name  # or another attribute like 'email'
-        else:
-            sender = 'Anonymous'  # Default sender name for anonymous users
+        message = data.get('message', '')
 
-        # Broadcast message
+        # Get the sender: If authenticated, use the user instance, else Anonymous
+        sender = self.scope['user'] if self.scope['user'].is_authenticated else None
+
+        # Store the chat message in the database
+        if sender:  # Only store the message if the user is authenticated
+            chat_message = await database_sync_to_async(ChatMessage.objects.create)(
+                ticket_id=self.ticket_id,
+                sender=sender,  # Set the sender to the actual User instance
+                message=message
+            )
+
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
                 'message': message,
-                'sender': sender
+                'sender': sender.first_name if sender else 'Anonymous',  # Use first_name for display
             }
         )
+
+
 
     async def chat_message(self, event):
         message = event['message']
@@ -45,9 +86,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.send(text_data=json.dumps({
             'message': message,
-            'sender': sender
+            'sender': sender,
         }))
-
 
 
 # consumers.py

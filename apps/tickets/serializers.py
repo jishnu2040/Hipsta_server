@@ -41,3 +41,15 @@ class ChatMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatMessage
         fields = '__all__'
+
+
+
+
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    sender = serializers.StringRelatedField()  # If you want to show the sender's name
+    timestamp = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")  # Format the timestamp
+
+    class Meta:
+        model = ChatMessage
+        fields = ['sender', 'message', 'timestamp']

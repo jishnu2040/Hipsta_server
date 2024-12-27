@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-
+from rest_framework import viewsets
 
 
 
@@ -115,3 +115,14 @@ class ChatMessageView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class ChatMessageViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ChatMessage.objects.all()
+    serializer_class = ChatMessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        ticket_id = self.kwargs['ticket_id']
+        return ChatMessage.objects.filter(ticket_id=ticket_id).order_by('timestamp')
