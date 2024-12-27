@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import  PartnerDetail, PartnerImage, Employee, Specialization, PartnerAvailability, EmployeeAvailability
+from .models import  PartnerDetail, PartnerImage, Employee, Specialization, PartnerAvailability, EmployeeAvailability, Subscription
 from apps.core.models import ServiceType, Service
 from apps.core.serializers import ServiceTypeSerializer  
 from datetime import datetime, timedelta
@@ -72,6 +72,18 @@ class PartnerDetailSerializer(serializers.ModelSerializer):
         if not ServiceType.objects.filter(id__in=service_ids).exists():
             raise serializers.ValidationError("Some service types are invalid.")
         return value
+    
+    def create(self, validated_data):
+        partner = super().create(validated_data)
+
+        # Automatically create a subscription for the partner
+        subscription = Subscription.objects.create(
+            partner=partner,
+            status="active",  # Initial status
+        )
+        subscription.activate(duration=30)  # Activate with a 30-day duration
+
+        return partner
 
 class PartnerProfileSerializer(serializers.ModelSerializer):
     selected_services = ServiceTypeSerializer(many=True, read_only=True) 
@@ -104,6 +116,11 @@ class EmployeeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'specialization', 'phone', 'is_available', 'is_active', 'partner']
         read_only_fields = ['partner']  # Ensure partner is read-only
 
+    def create(self, validated_data):
+        specialization_data = validated_data.pop('specialization')
+        specialization, _ = Specialization.objects.get_or_create(**specialization_data)
+        employee = Employee.objects.create(specialization=specialization, **validated_data)
+        return employee
 
 
 

@@ -233,13 +233,18 @@ class Subscription(models.Model):
     start_date = models.DateField(auto_now_add=True, verbose_name=_("Start Date"))
     end_date = models.DateField(null=True, blank=True)
 
-    def activate(self):
-        """Activate subscription based on the selected plan."""
-        if self.plan:
-            self.status = "active"
-            self.start_date = now().date()
+    def activate(self, duration=None):
+        """Activate subscription with an optional custom duration or based on the plan."""
+        self.status = "active"
+        self.start_date = now().date()
+        if duration:
+            self.end_date = self.start_date + timedelta(days=duration)
+        elif self.plan:
             self.end_date = self.start_date + timedelta(days=self.plan.duration_days)
-            self.save()
+        else:
+            raise ValueError("Duration or plan must be specified to activate the subscription.")
+        self.save()
+
 
     def check_expiry(self):
         """Mark the subscription as expired if past the end date."""

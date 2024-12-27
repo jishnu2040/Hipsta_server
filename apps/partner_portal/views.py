@@ -220,7 +220,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     serializer_class = EmployeeSerializer
 
     def get_queryset(self):
-        partner_id = self.kwargs['partner']  # Fetch partner_id from URL
+        partner_id = self.kwargs['partner']
         return Employee.objects.filter(partner_id=partner_id)
 
     def perform_create(self, serializer):
@@ -229,7 +229,9 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             partner = PartnerDetail.objects.get(id=partner_id)
         except PartnerDetail.DoesNotExist:
             raise NotFound(detail="Partner not found")
-        
+
+        serializer.save(partner=partner)
+
 
 
 
