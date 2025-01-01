@@ -8,7 +8,9 @@ from .views import (
     PasswordResetConfirm,
     SetnewPassword,
     LogoutUserView,
-    GoogleSignInView
+    GoogleSignInView,
+    ProfileView,
+    UserCountView
 )
 
 urlpatterns = [
@@ -22,4 +24,6 @@ urlpatterns = [
     path('set-new-password/', SetnewPassword.as_view(), name='set-new-password'),
     path('logout/', LogoutUserView.as_view(), name='logout'),
     path('google/', GoogleSignInView.as_view(), name='google-signin'),
+    path('profile/<uuid:user_id>/', ProfileView.as_view(), name='profile'),
+    path('user-count/', UserCountView.as_view(), name='user-count'),
 ]

@@ -100,20 +100,21 @@ ROOT_URLCONF = 'hipsta_server.urls'
 
 
 # Media configurations
-MEDIA_URL = '/media/'  # URL for accessing media files
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where uploaded files are stored
+MEDIA_URL = '/media/' 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  
 
-
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:8000",
 ]
 
 
 
 
-CORS_ALLOW_CREDENTIALS = True 
+# CORS_ALLOW_CREDENTIALS = True 
 
 CORS_ALLOW_METHODS = [
     'GET',
@@ -139,6 +140,8 @@ CORS_ALLOW_HEADERS = [
 ]
 
 
+
+
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:5173',
 ]
@@ -148,6 +151,7 @@ AUTH_USER_MODEL = 'accounts.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+
     ),
 }
 

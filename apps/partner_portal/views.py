@@ -216,7 +216,7 @@ from .models import Employee, PartnerDetail
 from .serializers import EmployeeSerializer
 
 class EmployeeViewSet(viewsets.ModelViewSet):
-    queryset = Employee.objects.all()
+    http_method_names = ['get', 'post', 'put', 'patch', 'delete']
     serializer_class = EmployeeSerializer
 
     def get_queryset(self):
@@ -230,7 +230,11 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         except PartnerDetail.DoesNotExist:
             raise NotFound(detail="Partner not found")
 
+        # Associate the employee with the partner
         serializer.save(partner=partner)
+
+    
+
 
 
 
@@ -456,3 +460,11 @@ class RenewSubscriptionView(APIView):
             "start_date": subscription.start_date,
             "end_date": subscription.end_date
         }, status=200)
+
+
+class PartnerCountView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        partner_count = PartnerDetail.objects.count()
+        return Response({'partner_count': partner_count})

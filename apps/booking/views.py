@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from .models import Appointment
-from .serializers import AppointmentSerializer,PartnerAppointmentSerializer
+from .serializers import AppointmentSerializer,PartnerAppointmentSerializer, AppointmentSerializer
 from .models import Appointment
 from apps.partner_portal.models import  Employee,EmployeeAvailability
 from apps.core.models import Service
@@ -12,6 +12,10 @@ from rest_framework import status
 from datetime import datetime
 from django.shortcuts import get_object_or_404
 from .tasks import send_booking_confirmation_email
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from rest_framework import generics
+
 
 class BookAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -55,27 +59,40 @@ class BookAppointmentView(APIView):
             duration=service.duration,  # Assuming Service model has a duration field
             total_amount=total_amount,
             payment_method=payment_method,
-            status='booked'  
+            status='booked'
         )
 
         # Update availability status
         availability.is_booked = True
         availability.save()
 
+        # Send notification to partner using the partner_id
+        partner_id = service.partner.id  # Get partner ID from the service
+        channel_layer = get_channel_layer()
+        
+        # Send notification with sender as "Customer" or any dynamic sender
+        async_to_sync(channel_layer.group_send)(
+            f"notifications_{partner_id}",
+            {
+                "type": "send_notification",
+                "message": f"An appointment has been successfully booked!",
+                "sender": "Customer"  # Add sender info dynamically if needed
+            }
+        )
 
         # Example of calling the task asynchronously
         send_booking_confirmation_email.delay(appointment.id)
-
 
         # Serialize and return the created appointment
         return Response(AppointmentSerializer(appointment).data, status=201)
 
 
+
+
+        
 class PartnerAppointmentsView(APIView):
     def get(self, request, partner_id):
         try:
-            # No need to manually convert, Django automatically passes partner_id as UUID
-            # Fetch appointments related to the specific partner
             appointments = Appointment.objects.filter(partner_id=partner_id)
 
             # Serialize the appointments data
@@ -87,3 +104,18 @@ class PartnerAppointmentsView(APIView):
         except Exception as e:
             # Handle other potential errors
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class TotalBookingsView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        total_bookings = Appointment.objects.count()
+        return Response({'total_bookings': total_bookings})
+
+
+
+class BookingListView(generics.ListAPIView):
+    queryset = Appointment.objects.all()
+    serializer_class = AppointmentSerializer

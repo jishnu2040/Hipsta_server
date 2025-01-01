@@ -108,19 +108,19 @@ class SpecializationSerializer(serializers.ModelSerializer):
         model = Specialization
         fields = ['id', 'name']
 
+
+
+        
 class EmployeeSerializer(serializers.ModelSerializer):
-    specialization = SpecializationSerializer()
+    specialization = serializers.PrimaryKeyRelatedField(queryset=Specialization.objects.all())
 
     class Meta:
         model = Employee
         fields = ['id', 'name', 'specialization', 'phone', 'is_available', 'is_active', 'partner']
-        read_only_fields = ['partner']  # Ensure partner is read-only
+        read_only_fields = ['partner']
 
     def create(self, validated_data):
-        specialization_data = validated_data.pop('specialization')
-        specialization, _ = Specialization.objects.get_or_create(**specialization_data)
-        employee = Employee.objects.create(specialization=specialization, **validated_data)
-        return employee
+        return Employee.objects.create(**validated_data)
 
 
 
@@ -194,3 +194,8 @@ class HolidaySerializer(serializers.ModelSerializer):
     class Meta:
         model = PartnerHoliday
         fields = ['id', 'date', 'description']
+
+
+
+class PartnerCountSerializer(serializers.Serializer):
+    partner_count = serializers.IntegerField()

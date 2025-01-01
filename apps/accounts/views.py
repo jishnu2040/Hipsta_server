@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework.generics import GenericAPIView
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from apps.accounts.models import User, OneTimePassword
@@ -228,3 +229,46 @@ class GoogleSignInView(GenericAPIView):
         data = serializer.validated_data['access_token']
         return Response(data, status=status.HTTP_200_OK)
 
+
+
+
+# views.py
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import RetrieveAPIView
+from rest_framework.exceptions import PermissionDenied
+from .models import User
+from .serializers import PartnerProfileSerializer
+
+class ProfileView(RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = PartnerProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        user_id = self.kwargs.get('user_id')
+        if not user_id:
+            raise PermissionDenied("User ID is required.")
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise PermissionDenied("User does not exist.")
+
+        # Ensure the user is the authenticated user and is of type 'partner'
+        if user != self.request.user:
+            raise PermissionDenied("You are not authorized to view this profile.")
+        if user.user_type != 'partner':
+            raise PermissionDenied("This endpoint is only accessible for partners.")
+
+        return user
+
+
+class UserCountView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        # Count total users
+        user_count = User.objects.count()
+
+        return Response({
+            'user_count': user_count
+        })

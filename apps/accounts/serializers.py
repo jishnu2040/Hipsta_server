@@ -189,3 +189,19 @@ class GoogleSignInSerializer(serializers.Serializer):
         last_name = google_user_data.get('family_name', '') 
         provider = "google"
         return register_social_user(provider, email, first_name, last_name)
+
+
+
+
+class PartnerProfileSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'full_name', 'email', 'date_joined', 'user_type']
+
+    def get_full_name(self, obj):
+        return obj.get_full_name()
+
+class UserCountSerializer(serializers.Serializer):
+    user_count = serializers.IntegerField()

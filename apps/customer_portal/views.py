@@ -108,30 +108,37 @@ class PartnerFilterView(APIView):
 
 
 
+from rest_framework.pagination import PageNumberPagination
+
+class PartnerPagination(PageNumberPagination):
+    page_size = 10  # Items per page
+    page_size_query_param = 'page_size'  
+    max_page_size = 100  
+
 class PartnerListView(generics.ListAPIView):
     serializer_class = PartnerDetailSerializer
-
+    pagination_class = PartnerPagination  # Set pagination class here
     def get_queryset(self):
         queryset = PartnerDetail.objects.all()
         lat = self.request.query_params.get('lat')
         lng = self.request.query_params.get('lng')
-        
+
         if lat and lng:
             try:
                 lat = float(lat)
                 lng = float(lng)
                 partners_with_distance = []
-                
+
                 for partner in queryset:
                     distance = haversine(lat, lng, partner.latitude, partner.longitude)  # Use latitude and longitude here
                     partners_with_distance.append((partner, distance))
-                
+
                 partners_with_distance.sort(key=lambda x: x[1])  # Sort partners by distance
                 sorted_partners = [partner for partner, distance in partners_with_distance]
                 return sorted_partners
             except ValueError:
                 pass  # If lat/lng conversion fails, do nothing
-                
+
         return queryset
 
 
