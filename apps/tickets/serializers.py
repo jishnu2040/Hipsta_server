@@ -37,19 +37,22 @@ class TicketSerializer(serializers.ModelSerializer):
 
 
 
-class ChatMessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ChatMessage
-        fields = '__all__'
+# class ChatMessageSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = ChatMessage
+#         fields = '__all__'
 
 
 
 
 
 class ChatMessageSerializer(serializers.ModelSerializer):
-    sender = serializers.StringRelatedField()  # If you want to show the sender's name
+    sender = serializers.SerializerMethodField()  # Use a method to get the first_name
     timestamp = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")  # Format the timestamp
 
     class Meta:
         model = ChatMessage
         fields = ['sender', 'message', 'timestamp']
+
+    def get_sender(self, obj):
+        return obj.sender.first_name  

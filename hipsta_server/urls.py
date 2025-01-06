@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/v1/booking/', include('apps.booking.urls')),
     path('api/v1/ticket/', include('apps.tickets.urls')),
     path('api/v1/payment/', include('apps.payments.urls')),
+    # path('api/v1/notification/', include('apps.notifications.urls')),
 ]
 
 if settings.DEBUG:

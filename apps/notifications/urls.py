@@ -1,6 +1,7 @@
-from django.urls import path
-from .views import send_ticket_message
+# from django.urls import path
+# from . import views
 
-urlpatterns = [
-    # path('send-ticket-message/', send_ticket_message, name='send_ticket_message'),
-]
+# urlpatterns = [
+#     # Add your URL patterns here
+#     path('notifications/',, name='example'),
+# ]

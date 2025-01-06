@@ -23,6 +23,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         if token:
             user = await self.get_user_from_token(token)
+            print(user)
             self.scope['user'] = user
         else:
             self.scope['user'] = AnonymousUser()
