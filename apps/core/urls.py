@@ -1,17 +1,19 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ( 
-    BannerView,
+from .views import (
+    BannerViewSet,
     ServiceTypeListCreateView,
     ServiceListView,
 )
 
+router = DefaultRouter()
+router.register(r'banners', BannerViewSet, basename='banner')
+
 urlpatterns = [
-    # Banner routes
-    path('banners/', BannerView.as_view(), name='banners'),
+    # Include the router URLs
+    path('', include(router.urls)), 
     # Service routes
-    path('services/', ServiceListView.as_view(), name='service-list'),  # List all service for search function
+    path('services/', ServiceListView.as_view(), name='service-list'), 
     # Service Type routes
     path('service_type/', ServiceTypeListCreateView.as_view(), name='service-type-list-create'),
 ]
-

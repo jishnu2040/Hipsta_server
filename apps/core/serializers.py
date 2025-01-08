@@ -6,7 +6,8 @@ from .models import ServiceType, Service, Banner
 class BannerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Banner
-        fields = ['id', 'title', 'description', 'image', 'start_date', 'end_date', 'is_active']
+        fields = '__all__';
+
 
 
 
