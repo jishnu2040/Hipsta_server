@@ -196,6 +196,7 @@ class SetnewPassword(GenericAPIView):
         return Response({'message': 'Password reset successful'}, status=status.HTTP_200_OK)
 
 
+
 # Logout View
 # This view logs out the authenticated user:
 # 1. Validates the logout request.
@@ -256,8 +257,8 @@ class ProfileView(RetrieveAPIView):
         # Ensure the user is the authenticated user and is of type 'partner'
         if user != self.request.user:
             raise PermissionDenied("You are not authorized to view this profile.")
-        if user.user_type != 'partner':
-            raise PermissionDenied("This endpoint is only accessible for partners.")
+        # if user.user_type != 'partner':
+        #     raise PermissionDenied("This endpoint is only accessible for partners.")
 
         return user
 

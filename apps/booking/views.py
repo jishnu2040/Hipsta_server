@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from .models import Appointment
-from .serializers import AppointmentSerializer,PartnerAppointmentSerializer, AppointmentSerializer
+from .serializers import AppointmentSerializer,PartnerAppointmentSerializer, AppointmentSerializer,CustomerAppointmentSerializer, AppointmentStatusSerializer
 from .models import Appointment
 from apps.partner_portal.models import  Employee,EmployeeAvailability
 from apps.core.models import Service
@@ -15,6 +15,10 @@ from .tasks import send_booking_confirmation_email
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from rest_framework import generics
+from apps.accounts.models import User
+from rest_framework.generics import UpdateAPIView
+from django.core.exceptions import PermissionDenied
+
 
 
 class BookAppointmentView(APIView):
@@ -119,3 +123,48 @@ class TotalBookingsView(APIView):
 class BookingListView(generics.ListAPIView):
     queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
+
+
+class AppointmentListView(generics.ListAPIView):
+    serializer_class = CustomerAppointmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user_id = self.request.user.id 
+        
+        # Fetch the user and return their appointments
+        user = get_object_or_404(User, id=user_id)
+        return Appointment.objects.filter(customer=user)
+
+
+
+from rest_framework.exceptions import ValidationError
+
+class AppointmentStatusUpdateView(UpdateAPIView):
+    queryset = Appointment.objects.all()
+    serializer_class = AppointmentStatusSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self):
+        # Fetch appointment by ID and ensure it belongs to the authenticated user
+        appointment_id = self.kwargs['appointment_id']
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+        except Appointment.DoesNotExist:
+            raise ValidationError({"detail": "Appointment not found."})
+
+        if appointment.customer != self.request.user:
+            raise PermissionDenied("You do not have permission to modify this appointment.")
+        return appointment
+
+    def patch(self, request, *args, **kwargs):
+        appointment = self.get_object()
+
+        # Ensure valid state transitions
+        if appointment.status not in ['booked', 'completed']:
+            raise ValidationError({
+                'status': "Only 'booked' or 'completed' appointments can be cancelled."
+            })
+
+        # Update status
+        return super().patch(request, *args, **kwargs)

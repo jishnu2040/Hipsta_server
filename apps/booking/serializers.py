@@ -78,10 +78,23 @@ class TotalBookingsSerializer(serializers.Serializer):
 
 
 
-class AppointmentSerializer(serializers.ModelSerializer):
+class CustomerAppointmentSerializer(serializers.ModelSerializer):
     customer_name = serializers.CharField(source='customer.get_full_name', read_only=True)
     partner_name = serializers.CharField(source='partner.business_name', read_only=True)
 
     class Meta:
         model = Appointment
         fields = ['id', 'customer_name', 'partner_name', 'date', 'start_time', 'status']
+
+
+class AppointmentStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Appointment
+        fields = ['status']
+
+    def validate_status(self, value):
+        # Normalize status to ensure consistent handling
+        value = value.lower()
+        if value != 'canceled':
+            raise serializers.ValidationError("Only 'canceled' status is allowed.")
+        return value
