@@ -4,14 +4,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from .models import Appointment
-from .serializers import AppointmentSerializer,PartnerAppointmentSerializer, AppointmentSerializer,CustomerAppointmentSerializer, AppointmentStatusSerializer
+from .serializers import AppointmentSerializer,PartnerAppointmentSerializer, AppointmentSerializer,CustomerAppointmentSerializer, AppointmentStatusSerializer,AppointmentAnalysisSerializer
 from .models import Appointment
 from apps.partner_portal.models import  Employee,EmployeeAvailability
 from apps.core.models import Service
 from rest_framework import status
-from datetime import datetime
+from datetime import datetime,timedelta
 from django.shortcuts import get_object_or_404
-from .tasks import send_booking_confirmation_email
+from .tasks import send_booking_confirmation_email    
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from rest_framework import generics
@@ -97,7 +97,17 @@ class BookAppointmentView(APIView):
 class PartnerAppointmentsView(APIView):
     def get(self, request, partner_id):
         try:
-            appointments = Appointment.objects.filter(partner_id=partner_id)
+            # Get the current date and time
+            now = datetime.now()
+
+            # Combine today's date with the current time
+            current_datetime = datetime.combine(now.date(), now.time())
+
+            # Filter appointments to only include bookings from today onwards with start_time > current time
+            appointments = Appointment.objects.filter(
+                partner_id=partner_id, 
+                date__gte=now.date()
+            )
 
             # Serialize the appointments data
             appointment_data = PartnerAppointmentSerializer(appointments, many=True).data
@@ -110,6 +120,40 @@ class PartnerAppointmentsView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+class AppointmentAnalysisView(APIView):
+    def get(self, request, partner_id):
+        try:
+            # Get the current date and time
+            now = datetime.now()
+
+            # Get the date for one week ago
+            one_week_ago = now - timedelta(weeks=1)
+
+            # Filter appointments to only include those from the past week
+            appointments = Appointment.objects.filter(
+                partner_id=partner_id, 
+                date__gte=one_week_ago.date()
+            )
+
+            # Serialize the appointment data for analysis (only includes id, date, and status)
+            appointment_data = AppointmentAnalysisSerializer(appointments, many=True).data
+
+            # Perform the analysis (example: total number of appointments)
+            total_appointments = len(appointments)
+
+            analysis = {
+                "total_appointments": total_appointments,
+            }
+
+            # Return the serialized data and analysis
+            return Response({"appointments": appointment_data, "analysis": analysis}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # Handle other potential errors
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+            
 
 class TotalBookingsView(APIView):
     # permission_classes = [IsAuthenticated]

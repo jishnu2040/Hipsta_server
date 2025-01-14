@@ -23,7 +23,7 @@ class Appointment(models.Model):
     customer = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='appointments', null=True, blank=True)
     partner = models.ForeignKey('partner_portal.PartnerDetail', on_delete=models.CASCADE, related_name='appointments')
     employee = models.ForeignKey('partner_portal.Employee', on_delete=models.CASCADE, related_name='appointments')
-    service = models.ForeignKey('core.Service', on_delete=models.CASCADE, verbose_name=_("Service"))
+    service = models.ForeignKey('core.Service', on_delete=models.CASCADE,related_name='appointments', verbose_name=_("Service"))
     date = models.DateField(verbose_name=_("Appointment Date"))
     start_time = models.TimeField(verbose_name=_("Start Time"))
     duration = models.DurationField(verbose_name=_("Duration"))

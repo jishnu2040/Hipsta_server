@@ -1,6 +1,6 @@
 # booking/urls.py
 from django.urls import path
-from .views import BookAppointmentView,PartnerAppointmentsView, TotalBookingsView,BookingListView,AppointmentListView,AppointmentStatusUpdateView
+from .views import BookAppointmentView,PartnerAppointmentsView, TotalBookingsView,BookingListView,AppointmentListView,AppointmentStatusUpdateView,AppointmentAnalysisView
 
 urlpatterns = [
     path('book-appointment/', BookAppointmentView.as_view(), name='book-appointment'),
@@ -9,4 +9,5 @@ urlpatterns = [
     path('bookings/', BookingListView.as_view(), name='booking-list'),
     path('appointments/', AppointmentListView.as_view(), name='appointment-list'),
     path('appointments/<uuid:appointment_id>/cancel/', AppointmentStatusUpdateView.as_view(), name='cancel-appointment'),
+    path('analysis/<uuid:partner_id>/', AppointmentAnalysisView.as_view(), name='appointment-analysis'),
 ]

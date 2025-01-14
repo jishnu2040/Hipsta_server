@@ -64,7 +64,13 @@ class PartnerAppointmentSerializer(serializers.ModelSerializer):
         except AttributeError:
             return None
 
+class AppointmentAnalysisSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Appointment
+        fields = ['id', 'date', 'status'] 
 
+
+        
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee

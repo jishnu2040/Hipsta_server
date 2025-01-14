@@ -19,6 +19,9 @@ from .views import (
     PartnerHolidayView,
     RenewSubscriptionView,
     PartnerCountView,
+    PartnerStatsView,
+    TopEmployeesView,
+    TopServiceView
 )
 
 router = DefaultRouter()
@@ -50,6 +53,9 @@ urlpatterns = [
     path('verify-otp/', VerifyOTPAndLoginView.as_view(), name='verify_otp'),
     path('renew-subscription/', RenewSubscriptionView.as_view(), name='renew_subscription'),
     path('partner-count/', PartnerCountView.as_view(), name='partner-count'),
+    path('<uuid:partner_id>/stats/', PartnerStatsView.as_view(), name='partner_stats'),
+    path('<uuid:partner_id>/topEmployee/', TopEmployeesView.as_view(), name='partner_top_employees'),
+    path('<uuid:partner_id>/topServices/', TopServiceView.as_view(), name='partner_top_services'),
 ]
 
 # Include the router's URLs

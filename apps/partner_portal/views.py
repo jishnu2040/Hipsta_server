@@ -11,9 +11,10 @@ from rest_framework import viewsets, permissions
 from rest_framework.exceptions import PermissionDenied
 from .utils import split_availability
 import random
-from apps.core.models import ServiceType 
+from apps.core.models import ServiceType, Service 
+from apps.booking.models import Appointment
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.db.models import Count
 
 
 class GetPartnerIDView(APIView):
@@ -418,10 +419,7 @@ class AddPartnerHolidayView(APIView):
 
 
 
-# apps/partner_portal/views.py
-# from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
-from rest_framework.response import Response
+
 from rest_framework import status
 from .models import PartnerHoliday, PartnerDetail
 from .serializers import HolidaySerializer
@@ -468,3 +466,86 @@ class PartnerCountView(APIView):
     def get(self, request, *args, **kwargs):
         partner_count = PartnerDetail.objects.count()
         return Response({'partner_count': partner_count})
+
+
+
+
+
+
+class PartnerStatsView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request, partner_id):
+        try:
+            # Fetch the partner and prefetch related data
+            partner = PartnerDetail.objects.prefetch_related(
+                'services',  # Prefetch related services
+                'employees',  # Prefetch related employees
+                'appointments'  
+            ).get(id=partner_id)
+
+            # Use aggregation for related data
+            total_services = partner.services.count()
+            employee_count = partner.employees.count()
+            total_bookings = partner.appointments.count()
+            # total_bookings = Appointment.objects.filter(service__partner=partner).count()
+
+            # Response data
+            data = {
+                "total_services": total_services,
+                "total_bookings": total_bookings,
+                "employee_count": employee_count
+            }
+            return Response(data, status=status.HTTP_200_OK)
+
+        except PartnerDetail.DoesNotExist:
+            return Response({"error": "Partner not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+class TopEmployeesView(APIView):
+    def get(self, request, partner_id):
+        try:
+            # Fetch the partner and prefetch related data
+            partner = PartnerDetail.objects.prefetch_related(
+                'employees',  # Prefetch related employees
+                'employees__appointments'  # Prefetch related appointments
+            ).get(id=partner_id)
+
+            # Annotate employees with the total number of appointments
+            top_employees = partner.employees.annotate(
+                total_appointments=Count('appointments')
+            ).order_by('-total_appointments')[:3] 
+
+            # Serialize the top employees
+            serializer = TopEmployeeSerializer(top_employees, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except PartnerDetail.DoesNotExist:
+            return Response({"error": "Partner not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class TopServiceView(APIView):
+    def get(self, request, partner_id):
+        try:
+            # Fetch the partner and prefetch related data
+            partner = PartnerDetail.objects.prefetch_related(
+                'services',
+                'services__appointments'  # Use the explicitly set related name
+            ).get(id=partner_id)
+
+            top_services = partner.services.annotate(
+                total_appointments=Count('appointments')  # Use the same related name
+            ).order_by('-total_appointments')[:3]
+
+
+            # Serialize the top services
+            serializer = TopServiceSerializer(top_services, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except PartnerDetail.DoesNotExist:
+            return Response({"error": "Partner not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

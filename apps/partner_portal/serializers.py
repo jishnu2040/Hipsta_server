@@ -199,3 +199,19 @@ class HolidaySerializer(serializers.ModelSerializer):
 
 class PartnerCountSerializer(serializers.Serializer):
     partner_count = serializers.IntegerField()
+
+
+class TopEmployeeSerializer(serializers.ModelSerializer):
+    total_appointments = serializers.IntegerField()
+
+    class Meta:
+        model = Employee
+        fields = ['id', 'name',  'total_appointments']
+
+
+class TopServiceSerializer(serializers.ModelSerializer):
+    total_appointments = serializers.IntegerField()
+
+    class Meta:
+        model = Service
+        fields = ['id', 'name', 'total_appointments']
