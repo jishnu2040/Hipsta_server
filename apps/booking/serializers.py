@@ -38,7 +38,7 @@ class PartnerAppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ['id', 'start_time', 'end_time', 'employee', 'employee_name', 'service', 'service_name', 'customer', 'customer_name', 'date']
+        fields = ['id', 'start_time', 'end_time', 'employee', 'employee_name', 'service', 'service_name', 'customer', 'customer_name', 'date', 'status']
 
     def get_customer_name(self, obj):
         try:
@@ -103,4 +103,19 @@ class AppointmentStatusSerializer(serializers.ModelSerializer):
         value = value.lower()
         if value != 'canceled':
             raise serializers.ValidationError("Only 'canceled' status is allowed.")
+        return value
+
+
+from rest_framework import serializers
+
+class BookingVerificationSerializer(serializers.Serializer):
+    """
+    Serializer to validate booking verification data.
+    """
+    booking_id = serializers.UUIDField(required=True)
+
+    def validate_booking_id(self, value):
+        """
+        Additional validation for booking ID, if necessary.
+        """
         return value

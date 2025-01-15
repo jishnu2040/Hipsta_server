@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from .models import Appointment
-from .serializers import AppointmentSerializer,PartnerAppointmentSerializer, AppointmentSerializer,CustomerAppointmentSerializer, AppointmentStatusSerializer,AppointmentAnalysisSerializer
+from .serializers import AppointmentSerializer,PartnerAppointmentSerializer, AppointmentSerializer,CustomerAppointmentSerializer, AppointmentStatusSerializer,AppointmentAnalysisSerializer,BookingVerificationSerializer
 from .models import Appointment
 from apps.partner_portal.models import  Employee,EmployeeAvailability
 from apps.core.models import Service
@@ -212,3 +212,34 @@ class AppointmentStatusUpdateView(UpdateAPIView):
 
         # Update status
         return super().patch(request, *args, **kwargs)
+
+
+class VerifyBookingAPIView(APIView):
+    """
+    API endpoint to verify a booking using a booking ID.
+    """
+    def post(self, request):
+        serializer = BookingVerificationSerializer(data=request.data)
+        if serializer.is_valid():
+            booking_id = serializer.validated_data.get('booking_id')
+            booking = Appointment.objects.filter(id=booking_id).first()
+            if booking:
+                if booking.status != 'completed':
+                    booking.status = 'completed'
+                    booking.save()
+                return Response(
+                    {
+                        'valid': True,
+                        'message': 'Booking is valid and marked as completed.',
+                        'status': booking.status,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                {'valid': False, 'message': 'Booking ID not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
