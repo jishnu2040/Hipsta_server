@@ -29,7 +29,9 @@ class PartnerDetail(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     license_certificate_image = models.CharField(max_length=255, null=True)
     subscription = models.OneToOneField('partner_portal.Subscription', on_delete=models.SET_NULL, null=True, blank=True, related_name='partner_subscription')
+    is_approved = models.BooleanField(default=False, verbose_name=_("Is Approved"))
 
+    
     def __str__(self):
         return self.business_name
 

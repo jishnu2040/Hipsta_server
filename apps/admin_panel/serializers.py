@@ -83,3 +83,53 @@ class SubscriptionPlanSerializer(serializers.ModelSerializer):
         return instance
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from rest_framework import serializers
+
+
+class BookingSummarySerializer(serializers.Serializer):
+    date = serializers.DateField()
+    status = serializers.CharField()
+
+
+class MonthlyBookingSummarySerializer(serializers.Serializer):
+    month = serializers.CharField()  # 'YYYY-MM' format
+    bookings = BookingSummarySerializer(many=True)
+
+
+# serializers.py
+from rest_framework import serializers
+
+class BookingDetailsSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    date = serializers.DateField()
+    start_time = serializers.TimeField()
+    status = serializers.CharField()
+    total_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = serializers.CharField()
+    duration = serializers.DurationField()
+    partner_name = serializers.CharField()
+    service_name = serializers.CharField()
+    customer_name = serializers.CharField()
+    employee_name = serializers.CharField()
+
+
+
+from apps.partner_portal.models import PartnerDetail
+class PartnerDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PartnerDetail
+        fields = ['id', 'business_name', 'website', 'team_size', 'is_approved', 'license_certificate_image']
