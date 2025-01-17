@@ -1,15 +1,23 @@
+# views.py
+
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from .models import Appointment
-from .serializers import AppointmentSerializer,PartnerAppointmentSerializer, AppointmentSerializer,CustomerAppointmentSerializer, AppointmentStatusSerializer,AppointmentAnalysisSerializer,BookingVerificationSerializer
-from .models import Appointment
-from apps.partner_portal.models import  Employee,EmployeeAvailability
+from .serializers import (
+    AppointmentSerializer,
+    PartnerAppointmentSerializer,
+    CustomerAppointmentSerializer,
+    AppointmentStatusSerializer,
+    AppointmentAnalysisSerializer,
+    BookingVerificationSerializer,
+)
+from apps.partner_portal.models import Employee, EmployeeAvailability
 from apps.core.models import Service
 from rest_framework import status
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 from django.shortcuts import get_object_or_404
 from .tasks import send_booking_confirmation_email    
 from asgiref.sync import async_to_sync
@@ -18,7 +26,6 @@ from rest_framework import generics
 from apps.accounts.models import User
 from rest_framework.generics import UpdateAPIView
 from django.core.exceptions import PermissionDenied
-
 
 
 class BookAppointmentView(APIView):
@@ -91,9 +98,6 @@ class BookAppointmentView(APIView):
         return Response(AppointmentSerializer(appointment).data, status=201)
 
 
-
-
-        
 class PartnerAppointmentsView(APIView):
     def get(self, request, partner_id):
         try:
@@ -118,7 +122,6 @@ class PartnerAppointmentsView(APIView):
         except Exception as e:
             # Handle other potential errors
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class AppointmentAnalysisView(APIView):
@@ -153,7 +156,6 @@ class AppointmentAnalysisView(APIView):
             # Handle other potential errors
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-            
 
 class TotalBookingsView(APIView):
     # permission_classes = [IsAuthenticated]
@@ -161,7 +163,6 @@ class TotalBookingsView(APIView):
     def get(self, request, *args, **kwargs):
         total_bookings = Appointment.objects.count()
         return Response({'total_bookings': total_bookings})
-
 
 
 class BookingListView(generics.ListAPIView):
@@ -180,9 +181,6 @@ class AppointmentListView(generics.ListAPIView):
         user = get_object_or_404(User, id=user_id)
         return Appointment.objects.filter(customer=user)
 
-
-
-from rest_framework.exceptions import ValidationError
 
 class AppointmentStatusUpdateView(UpdateAPIView):
     queryset = Appointment.objects.all()

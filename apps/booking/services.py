@@ -1,12 +1,16 @@
+# services.py
+
 from collections import defaultdict
-from .models import Appointment
-from datetime import datetime,timedelta, date
+from datetime import datetime, timedelta, date
 from django.db.models import Count
+from django.contrib.auth import get_user_model
 from apps.booking.models import Appointment
 from apps.partner_portal.models import Employee
-from apps.core.models import Service 
+from apps.core.models import Service
 from apps.partner_portal.models import PartnerDetail  
-from django.contrib.auth import get_user_model 
+
+# User model import for reference
+User = get_user_model()
 
 def get_all_bookings_grouped_by_month():
     """
@@ -18,7 +22,8 @@ def get_all_bookings_grouped_by_month():
     # Group bookings by year and month
     grouped_bookings = defaultdict(list)
     for appointment in appointments:
-        year_month = f"{appointment.date.year}-{appointment.date.month:02d}"  # Format 'YYYY-MM'
+        # Format 'YYYY-MM' for year-month
+        year_month = f"{appointment.date.year}-{appointment.date.month:02d}"
         grouped_bookings[year_month].append({
             'date': appointment.date,
             'status': appointment.status,
@@ -33,13 +38,11 @@ def get_all_bookings_grouped_by_month():
     return result
 
 
-
-
-
 def get_top_partners_by_bookings():
     """
     Fetch the top 5 partners based on the number of bookings in the last month.
     """
+    # Get the date for one month ago
     one_month_ago = date.today() - timedelta(days=30)
 
     # Query appointments in the last month and count bookings per partner
@@ -61,22 +64,11 @@ def get_top_partners_by_bookings():
     ]
 
 
-
-
-
-
-User = get_user_model()
-
-# services.py
-from datetime import date, timedelta
-from apps.booking.models import Appointment
-from apps.accounts.models import User  # Import the User model
-
 def get_booking_details_with_names():
     """
     Fetch booking details with human-readable names for partner, customer, employee, and service.
     """
-    # Fetch all bookings with related data
+    # Fetch all bookings with related data (partner, service, employee, customer)
     bookings = (
         Appointment.objects.select_related("partner", "service")
         .prefetch_related("employee", "customer")  # Prefetching employee and customer
@@ -97,7 +89,7 @@ def get_booking_details_with_names():
         )
     )
 
-    # Format results
+    # Format results with human-readable names
     formatted_bookings = [
         {
             "id": booking["id"],

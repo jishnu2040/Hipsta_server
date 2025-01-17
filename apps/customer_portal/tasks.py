@@ -4,8 +4,6 @@ from apps.partner_portal.models import EmployeeAvailability
 
 
 
-
-
 @shared_task
 def release_expired_locks():
     now = timezone.now()

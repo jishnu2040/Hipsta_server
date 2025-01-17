@@ -47,7 +47,6 @@ jmespath==1.0.1
 kombu==5.4.2
 msgpack==1.1.0
 oauthlib==3.2.2
-payu-websdk==0.1.7
 pillow==11.0.0
 prompt_toolkit==3.0.48
 proto-plus==1.25.0

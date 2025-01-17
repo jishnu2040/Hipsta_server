@@ -1,6 +1,17 @@
 # booking/urls.py
+
 from django.urls import path
-from .views import BookAppointmentView,PartnerAppointmentsView, TotalBookingsView,BookingListView,AppointmentListView,AppointmentStatusUpdateView,AppointmentAnalysisView,VerifyBookingAPIView
+from .views import (
+    BookAppointmentView,
+    PartnerAppointmentsView,
+    TotalBookingsView,
+    BookingListView,
+    AppointmentListView,
+    AppointmentStatusUpdateView,
+    AppointmentAnalysisView,
+    VerifyBookingAPIView,
+)
+
 
 urlpatterns = [
     path('book-appointment/', BookAppointmentView.as_view(), name='book-appointment'),

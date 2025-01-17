@@ -1,10 +1,22 @@
 from .base import *
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'your-production-secret-key'  # Change to a secure key in production
-
 DEBUG = False
 
-ALLOWED_HOSTS = ['yourdomain.com']  # Change to your actual domain
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['yourdomain.com'])
 
-# Database settings for production
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('DB_NAME', default='hipsta_prod_db'),
+        'USER': env('DB_USER', default='hipsta_prod_user'),
+        'PASSWORD': env('DB_PASSWORD', default='your_secure_password'),
+        'HOST': env('DB_HOST', default='prod-db-host'),
+        'PORT': env('DB_PORT', default='5432'),
+    }
+}

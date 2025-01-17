@@ -1,0 +1,8 @@
+# Common ignores
+__pycache__/
+*.pyc
+*.pyo
+*.env
+*.git
+node_modules/
+build/

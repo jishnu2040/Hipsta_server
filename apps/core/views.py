@@ -12,15 +12,6 @@ from rest_framework.decorators import action
 
 
 from django.core.exceptions import ObjectDoesNotExist
-# ServiceType Views
-
-# class BannerView(APIView):
-#     def get(self, request):
-#         banners = Banner.objects.filter(is_active=True)
-#         active_banners = [banner for banner in banners if banner.is_active_banner()]
-#         serializer = BannerSerializer(active_banners, many=True)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class BannerViewSet(ModelViewSet):
     queryset = Banner.objects.all()

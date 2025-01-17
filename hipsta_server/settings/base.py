@@ -6,83 +6,54 @@ from celery.schedules import crontab
 from time import sleep
 from datetime import timedelta
 
-
-
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Initialize environment variables
 env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))  # Make sure BASE_DIR is defined
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))  # Read environment variables from .env
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
 
-
-
-
 # Application definition
 INSTALLED_APPS = [
-
-    # Django default apps
-    
     "daphne",
-
-
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    # Third-party dependencies
-
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
     'django_celery_results',
     'django_celery_beat',
     'django.contrib.sites',
-    'rest_framework_simplejwt.token_blacklist', 
-    # 'django_ratelimit', 
-    
-
-    # Your apps
+    'rest_framework_simplejwt.token_blacklist',
     'apps.accounts',
     'apps.customer_portal',   
     'apps.booking',            
     'apps.partner_portal',   
     'apps.payments',         
-    'apps.notifications',      
-    'apps.analytics',        
+    'apps.notifications',              
     'apps.core', 
     'apps.admin_panel',
     'apps.tickets'
 ]
 
-
-# INSTALLED_APPS += [
-#     'channels',
-# ]
-
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [env('REDIS_HOST', default='redis://127.0.0.1:6379')],
         },
     },
 }
 
-
-
-
-
-
 SITE_ID = 1
- 
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -96,14 +67,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'hipsta_server.urls'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
-
-# Media configurations
-MEDIA_URL = '/media/' 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  
-
-CORS_ALLOW_ALL_ORIGINS = True 
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -111,23 +78,16 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
 ]
 
-
-
-
-# CORS_ALLOW_CREDENTIALS = True 
-
 CORS_ALLOW_METHODS = [
     'GET',
     'POST',
     'PUT',
-    'PATCH',  # Make sure PATCH is here
+    'PATCH',
     'DELETE',
     'OPTIONS',
 ]
 
-
 CORS_ALLOW_CREDENTIALS = True
-
 
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -141,9 +101,6 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-
-
-
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:5173',
 ]
@@ -153,7 +110,6 @@ AUTH_USER_MODEL = 'accounts.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-
     ),
 }
 
@@ -162,8 +118,6 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
-
-
 
 TEMPLATES = [
     {
@@ -181,21 +135,16 @@ TEMPLATES = [
     },
 ]
 
-
 WSGI_APPLICATION = 'hipsta_server.wsgi.application'
 
 ASGI_APPLICATION = 'hipsta_server.asgi.application'
 
-# Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
 
-# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 USE_TZ = True 
 TIME_ZONE = 'Asia/Kolkata'
-
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = env('EMAIL_HOST')
@@ -206,18 +155,15 @@ EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
 
-
 # Celery configuration
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://127.0.0.1:6379/0')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://127.0.0.1:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Kolkata'
 
 CELERY_RESULT_BACKEND = 'django-db'
-
-
 
 # Celery Beat schedule
 CELERY_BEAT_SCHEDULE = {
@@ -235,18 +181,15 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
-# map 
+# Google and AWS keys
 GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
 SOCIAL_AUTH_PASSWORD = env('SOCIAL_PASSWORD')
 
-
-# s3 
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
 AWS_REGION = env('AWS_REGION', default='us-east-1')
 
-
-RAZORPAY_KEY_ID = 'rzp_test_c3ulzNcBkio9UQ'
-RAZORPAY_KEY_SECRET = 'xxNLpqMrCuZ2AhOsOMTxxWtp'
+RAZORPAY_KEY_ID = env('RAZORPAY_KEY_ID', default='rzp_test_c3ulzNcBkio9UQ')
+RAZORPAY_KEY_SECRET = env('RAZORPAY_KEY_SECRET', default='xxNLpqMrCuZ2AhOsOMTxxWtp')

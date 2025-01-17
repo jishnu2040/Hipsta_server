@@ -1,10 +1,7 @@
 from rest_framework import serializers
 from .models import Appointment
-from apps.partner_portal.models import  Employee
+from apps.partner_portal.models import Employee
 from apps.core.models import Service
-
-
-
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
@@ -26,9 +23,8 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'duration', 
             'total_amount', 
             'payment_method', 
-            'status', 
+            'status',
         ]
-
 
 
 class PartnerAppointmentSerializer(serializers.ModelSerializer):
@@ -38,7 +34,19 @@ class PartnerAppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ['id', 'start_time', 'end_time', 'employee', 'employee_name', 'service', 'service_name', 'customer', 'customer_name', 'date', 'status']
+        fields = [
+            'id', 
+            'start_time', 
+            'end_time', 
+            'employee', 
+            'employee_name', 
+            'service', 
+            'service_name', 
+            'customer', 
+            'customer_name', 
+            'date', 
+            'status',
+        ]
 
     def get_customer_name(self, obj):
         try:
@@ -64,24 +72,21 @@ class PartnerAppointmentSerializer(serializers.ModelSerializer):
         except AttributeError:
             return None
 
+
 class AppointmentAnalysisSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
-        fields = ['id', 'date', 'status'] 
+        fields = ['id', 'date', 'status']
 
 
-        
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = ['id', 'text', 'avatar', 'specialization']  # Adjust the fields according to your model
 
 
-
 class TotalBookingsSerializer(serializers.Serializer):
     total_bookings = serializers.IntegerField()
-
-
 
 
 class CustomerAppointmentSerializer(serializers.ModelSerializer):
@@ -105,8 +110,6 @@ class AppointmentStatusSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Only 'canceled' status is allowed.")
         return value
 
-
-from rest_framework import serializers
 
 class BookingVerificationSerializer(serializers.Serializer):
     """

@@ -52,12 +52,12 @@ def send_booking_confirmation_email(appointment_id):
         "emails/booking_confirmation.html",
         {
             "appointment": appointment,
-            "qr_code_cid": qr_code_cid,  # Pass CID to the template
+            "qr_code_cid": qr_code_cid,  
         }
     )
     email.body = email_content
     email.content_subtype = "html"
     email.send()
 
-    # Close the buffer
+  
     qr_buffer.close()

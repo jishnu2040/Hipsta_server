@@ -1,5 +1,5 @@
 from rest_framework import generics, status
-from .models import  PartnerDetail,EmployeeOTP, PartnerImage,PartnerAvailability, Subscription
+from .models import  PartnerDetail,EmployeeOTP, PartnerImage,PartnerAvailability, Subscription, PartnerHoliday, Employee
 from .serializers import *
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib import redirects
@@ -15,7 +15,8 @@ from apps.core.models import ServiceType, Service
 from apps.booking.models import Appointment
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
-
+from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
 
 class GetPartnerIDView(APIView):
 
@@ -211,10 +212,6 @@ class SpecializationListView(APIView):
 
 
 
-from rest_framework import viewsets
-from rest_framework.exceptions import NotFound
-from .models import Employee, PartnerDetail
-from .serializers import EmployeeSerializer
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']
@@ -236,14 +233,6 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 
     
 
-
-
-
-
-
-
-
-
 class PartnerAvailabilityViewSet(viewsets.ModelViewSet):
     queryset = PartnerAvailability.objects.all()
     serializer_class = PartnerAvailabilitySerializer
@@ -262,9 +251,6 @@ class PartnerAvailabilityViewSet(viewsets.ModelViewSet):
         if not self.request.user.partner_profile:
             raise ValidationError("User must be associated with a partner.")
         serializer.save(partner=self.request.user.partner_profile)
-
-
-
 
 
 class EmployeeAvailabilityViewSet(viewsets.ModelViewSet):
@@ -386,12 +372,7 @@ class ServicesView(APIView):
 
 
 # views.py
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import PartnerHoliday, PartnerDetail
-from .serializers import PartnerHolidaySerializer
-from rest_framework.permissions import IsAuthenticated
+
 
 class AddPartnerHolidayView(APIView):
     # permission_classes = [IsAuthenticated]
@@ -420,10 +401,6 @@ class AddPartnerHolidayView(APIView):
 
 
 
-from rest_framework import status
-from .models import PartnerHoliday, PartnerDetail
-from .serializers import HolidaySerializer
-
 class PartnerHolidayView(APIView):
     def get(self, request, partner_id):
         # Ensure partner exists
@@ -433,9 +410,6 @@ class PartnerHolidayView(APIView):
         holidays = PartnerHoliday.objects.filter(partner_id=partner_id)
         serializer = HolidaySerializer(holidays, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-
 
 
 
@@ -466,9 +440,6 @@ class PartnerCountView(APIView):
     def get(self, request, *args, **kwargs):
         partner_count = PartnerDetail.objects.count()
         return Response({'partner_count': partner_count})
-
-
-
 
 
 

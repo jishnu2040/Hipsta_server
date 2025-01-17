@@ -1,39 +1,16 @@
 from .base import *
-# import os
-# from celery import Celery
-# from celery.schedules import crontab
-# from time import sleep
 
-# this cache only for dev env dont use production 
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-#         'LOCATION': '/path/to/cache/directory',  # Make sure the directory exists
-#     }
-# }
-
-
-# hipsta_server/settings/development.py
-ASGI_APPLICATION = 'hipsta_server.asgi.application'
-
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
-
-# Database settings for development
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',  
-        'NAME': 'hipsta_db',
-        'USER': 'hipsta_user',
-        'PASSWORD': 'hipsta',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('DB_NAME', default='hipsta_db'),
+        'USER': env('DB_USER', default='hipsta_user'),
+        'PASSWORD': env('DB_PASSWORD', default='hipsta'),
+        'HOST': env('DB_HOST', default='127.0.0.1'),
+        'PORT': env('DB_PORT', default='5432'),
     }
 }
-
-
-

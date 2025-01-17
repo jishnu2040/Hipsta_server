@@ -5,10 +5,7 @@ from .serializers import *
 from rest_framework.response import Response
 from rest_framework import generics, status
 from apps.core.models import ServiceType
-from apps.partner_portal.models import PartnerDetail, PartnerAvailability,EmployeeAvailability
-
-
-
+from apps.partner_portal.models import PartnerDetail, PartnerAvailability, EmployeeAvailability
 
 
 class PartnerByServiceView(APIView):
@@ -53,7 +50,6 @@ class PartnerByServiceView(APIView):
                 {"error": str(e)} if str(e) else {"error": "An unexpected error occurred."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
 
 
 class PartnerFilterView(APIView):
@@ -107,7 +103,6 @@ class PartnerFilterView(APIView):
             )
 
 
-
 from rest_framework.pagination import PageNumberPagination
 
 class PartnerPagination(PageNumberPagination):
@@ -118,6 +113,7 @@ class PartnerPagination(PageNumberPagination):
 class PartnerListView(generics.ListAPIView):
     serializer_class = PartnerDetailSerializer
     pagination_class = PartnerPagination  # Set pagination class here
+
     def get_queryset(self):
         queryset = PartnerDetail.objects.all()
         lat = self.request.query_params.get('lat')
@@ -163,7 +159,6 @@ class PartnerDetailView(APIView):
 
         serializer = PartnerDetailSerializer(partner)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
 
 
 class PartnerAvailabilityView(APIView):
@@ -176,7 +171,6 @@ class PartnerAvailabilityView(APIView):
             return Response({"error": "Partner availability not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
-
 class ServicesView(APIView):
     def get(self, request, *args, **kwargs):
         partner_id = self.request.query_params.get('partnerId')
@@ -186,7 +180,8 @@ class ServicesView(APIView):
         services = Service.objects.filter(partner_id=partner_id, status='active')  # Filter by partnerId and status
         serializer = ServicesSerializer(services, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
+
 class EmployeeListByPartnerView(APIView):
     def get(self, request, partner_id):
         # Filter employees by partner_id
@@ -196,7 +191,6 @@ class EmployeeListByPartnerView(APIView):
         serializer = EmployeeSerializer(employees, many=True)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
 
 
 class AvailableTimeSlotsView(APIView):
@@ -213,7 +207,7 @@ class AvailableTimeSlotsView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 
 class ServiceDetailView(APIView):
     def get(self, request, service_id, format=None):
@@ -226,11 +220,6 @@ class ServiceDetailView(APIView):
         # Serialize and return the service data
         serializer = ServicesSerializer(service)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-
-
-
 
 
 class LockSlotView(APIView):

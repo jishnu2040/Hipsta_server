@@ -1,28 +1,52 @@
 from django.shortcuts import render
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework import status
-from .serializers import *
-from apps.accounts.models import User
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.permissions import IsAuthenticated,IsAdminUser
-from rest_framework import generics
+from rest_framework import status, generics
 from rest_framework.views import APIView
-from apps.booking.services import get_all_bookings_grouped_by_month, get_top_partners_by_bookings 
-from .serializers import MonthlyBookingSummarySerializer
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
-# Create your views here.
+from apps.accounts.models import User
+from apps.booking.services import (
+    get_all_bookings_grouped_by_month,
+    get_top_partners_by_bookings,
+    get_booking_details_with_names,
+)
+from apps.partner_portal.models import PartnerDetail,SubscriptionPlan
+
+from .serializers import (
+    AdminLoginSerializer,
+    AdminUserListSerializer,
+    SubscriptionPlanSerializer,
+    MonthlyBookingSummarySerializer,
+    BookingDetailsSerializer,
+    PartnerDetailSerializer,
+)
+
+# ----------------------------
+# Admin Authentication Views
+# ----------------------------
+
 class AdminLogin(generics.CreateAPIView):
+    """
+    Handles admin login functionality.
+    """
     serializer_class = AdminLoginSerializer
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(
-            data=request.data, context={'request': request})
+        serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
+# ----------------------------
+# User Management Views
+# ----------------------------
 
 class AdminUserList(GenericAPIView):
+    """
+    Retrieve a list of all non-admin users.
+    """
+    # Uncomment for production
     # permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request):
@@ -31,101 +55,74 @@ class AdminUserList(GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-
-# User List View 
-# class UserListView(generics.ListCreateAPIView):
-#     serializer_class = UserSerializer
-#     # permission_classes = [permissions.IsAdminUser]
-
-#     def get_queryset(self):
-#         return User.objects.filter(user_type='customer',is_superuser=False)
-
-# # User Detailed View 
-# class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
-#     permission_classes = [permissions.IsAdminUser]
-
-
- 
 class BlockUserView(APIView):
-    # permission_classes = [permissions.IsAdminUser]
+    """
+    Block a specific user by their UUID.
+    """
+    # Uncomment for production
+    # permission_classes = [IsAuthenticated, IsAdminUser]
 
     def patch(self, request, user_id):
         try:
             user = User.objects.get(pk=user_id)
-            user.is_active =False
+            user.is_active = False
             user.save()
-            return Response({
-                "message": "User blocked successfully"}, status=status.HTTP_200_OK)
+            return Response({"message": "User blocked successfully."}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
 class UnblockUserView(APIView):
-    # permission_classes = [permissions.IsAdminUser]
+    """
+    Unblock a specific user by their UUID.
+    """
+    # Uncomment for production
+    # permission_classes = [IsAuthenticated, IsAdminUser]
 
     def patch(self, request, user_id):
         try:
             user = User.objects.get(pk=user_id)
             user.is_active = True
             user.save()
-            return Response({"message": "User unblocked successfully"}, status=status.HTTP_200_OK)
+            return Response({"message": "User unblocked successfully."}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
 
+# ----------------------------
+# Subscription Management Views
+# ----------------------------
 
 class SubscriptionPlanListView(generics.ListCreateAPIView):
-
-
+    """
+    Retrieve or create subscription plans.
+    """
     serializer_class = SubscriptionPlanSerializer
     queryset = SubscriptionPlan.objects.all()
+    # Uncomment for production
     # permission_classes = [IsAuthenticated, IsAdminUser]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# ----------------------------
+# Booking Management Views
+# ----------------------------
 
 class AllBookingsView(APIView):
+    """
+    Retrieve all bookings grouped by month.
+    """
     def get(self, request, *args, **kwargs):
-        """
-        Fetch all bookings from the database and return them grouped by month with minimal data.
-        """
         try:
-            # Fetch and group bookings by month
             grouped_bookings = get_all_bookings_grouped_by_month()
-
-            # Serialize the data
             serializer = MonthlyBookingSummarySerializer(grouped_bookings, many=True)
-
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
 class TopPartnersView(APIView):
+    """
+    Retrieve the top 5 partners with the most bookings in the last month.
+    """
     def get(self, request, *args, **kwargs):
-        """
-        Get the top 5 partners with the most bookings in the last month.
-        """
         try:
             top_partners = get_top_partners_by_bookings()
             return Response(top_partners, status=status.HTTP_200_OK)
@@ -133,41 +130,37 @@ class TopPartnersView(APIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
-from apps.booking.services import get_booking_details_with_names
-
 class BookingDetailsView(APIView):
+    """
+    Retrieve detailed information about bookings.
+    """
     def get(self, request, *args, **kwargs):
-        """
-        Fetch and return booking details with related names for partner, customer, employee, and service.
-        """
         try:
             bookings = get_booking_details_with_names()
-            serializer = BookingDetailsSerializer(bookings, many=True)  # Serialize the list of bookings
+            serializer = BookingDetailsSerializer(bookings, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-
-
-from apps.partner_portal.models import PartnerDetail
-from .serializers import PartnerDetailSerializer
-
+# ----------------------------
+# Partner Management Views
+# ----------------------------
 
 class PartnerListView(APIView):
+    """
+    Retrieve a list of all partners.
+    """
     def get(self, request, *args, **kwargs):
-        """Fetch all partners."""
         partners = PartnerDetail.objects.all()
         serializer = PartnerDetailSerializer(partners, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ApprovePartnerView(APIView):
+    """
+    Approve a partner by their ID.
+    """
     def patch(self, request, partner_id, *args, **kwargs):
-        """Approve a partner."""
         try:
             partner = PartnerDetail.objects.get(id=partner_id)
             partner.is_approved = True
@@ -178,8 +171,10 @@ class ApprovePartnerView(APIView):
 
 
 class RejectPartnerView(APIView):
+    """
+    Reject a partner by their ID.
+    """
     def patch(self, request, partner_id, *args, **kwargs):
-        """Reject a partner."""
         try:
             partner = PartnerDetail.objects.get(id=partner_id)
             partner.is_approved = False
