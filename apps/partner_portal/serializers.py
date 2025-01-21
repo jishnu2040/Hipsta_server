@@ -111,18 +111,33 @@ class SpecializationSerializer(serializers.ModelSerializer):
 
 
         
+
+
+
 class EmployeeSerializer(serializers.ModelSerializer):
     specialization = serializers.PrimaryKeyRelatedField(queryset=Specialization.objects.all())
+    service_type = serializers.PrimaryKeyRelatedField(
+        queryset=ServiceType.objects.all(),
+        write_only=True,
+        required=False,
+    )  # This field is optional and only for writing
 
     class Meta:
         model = Employee
-        fields = ['id', 'name', 'specialization', 'phone', 'is_available', 'is_active', 'partner']
+        fields = ['id', 'name', 'specialization', 'phone', 'is_available', 'is_active', 'partner', 'service_types', 'service_type']
         read_only_fields = ['partner']
 
     def create(self, validated_data):
-        return Employee.objects.create(**validated_data)
+        # Handle single `service_type` field if provided
+        service_type = validated_data.pop('service_type', None)
+        service_types = validated_data.pop('service_types', [])
+        
+        if service_type:
+            service_types.append(service_type)  # Add single service_type ID to the list
 
-
+        employee = Employee.objects.create(**validated_data)
+        employee.service_types.set(service_types)
+        return employee
 
 
 

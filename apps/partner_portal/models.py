@@ -61,7 +61,7 @@ class PartnerAvailability(models.Model):
     def __str__(self):
         return f"{self.partner} availability on {self.weekday or self.specific_date} from {self.start_time} to {self.end_time}"
 
-    
+   
 
 
 class Specialization(models.Model):
@@ -75,14 +75,21 @@ class Employee(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     partner = models.ForeignKey(PartnerDetail, related_name='employees', on_delete=models.CASCADE)
     name = models.CharField(max_length=100, verbose_name=_("Employee Name"))
-    specialization = models.ForeignKey(Specialization, on_delete=models.PROTECT, verbose_name=_("Specialization"))
-    phone = models.CharField(max_length=20,unique=True, verbose_name=_("phone number"))
-    is_available = models.BooleanField(default=True, verbose_name=_("Is Available"))
-    is_active = models.BooleanField(default=True, verbose_name=_("Is Activate"))
-
+    specialization = models.ForeignKey(Specialization,on_delete=models.PROTECT, verbose_name=_("Specialization"))
+    service_types = models.ManyToManyField('core.ServiceType',related_name='employees', verbose_name=_("Service Types"),blank=True)
+    phone = models.CharField(max_length=20,unique=True,verbose_name=_("Phone Number"))
+    is_available = models.BooleanField(default=True,verbose_name=_("Is Available"))
+    is_active = models.BooleanField(default=True, verbose_name=_("Is Active"))
 
     def __str__(self):
-        return f"{self.name}- {self.specialization}"
+        return f"{self.name} - {self.specialization}"
+
+    def get_service_type_names(self):
+        """
+        Returns a list of service type names this employee belongs to.
+        """
+        return [service_type.name for service_type in self.service_types.all()]
+
     
 
 

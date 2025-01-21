@@ -17,6 +17,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
+from datetime import date
+
 
 class GetPartnerIDView(APIView):
 
@@ -401,15 +403,21 @@ class AddPartnerHolidayView(APIView):
 
 
 
+
 class PartnerHolidayView(APIView):
     def get(self, request, partner_id):
-        # Ensure partner exists
-        # get_object_or_404(PartnerDetail, id=partner_id)
-        
-        # Fetch holidays for the partner
-        holidays = PartnerHoliday.objects.filter(partner_id=partner_id)
+
+        today = date.today()
+        # Fetch holidays for the partner that are upcoming
+        holidays = PartnerHoliday.objects.filter(
+            partner_id=partner_id, 
+            date__gte=today
+        ).order_by('date')  # Sort holidays in ascending order by date
+
+        # Serialize and return the filtered holidays
         serializer = HolidaySerializer(holidays, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 

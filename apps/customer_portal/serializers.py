@@ -12,7 +12,7 @@ class PartnerImageSerializer(serializers.ModelSerializer):
 class PartnerDetailSerializer(serializers.ModelSerializer):
     image_slides = PartnerImageSerializer(many=True, read_only=True)
     service_names = serializers.SerializerMethodField()
-    top_services = serializers.SerializerMethodField()  # New method field for top services
+    top_services = serializers.SerializerMethodField()
 
     class Meta:
         model = PartnerDetail
@@ -65,10 +65,10 @@ class ServicesSerializer(serializers.ModelSerializer):
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
+    service_types = serializers.StringRelatedField(many=True)  
     class Meta:
         model = Employee
-        fields = ['id', 'name', 'specialization', 'phone', 'is_available', 'is_active']
-
+        fields = ['id', 'name', 'specialization', 'phone', 'is_available', 'is_active', 'service_types']
 
 
 class PartnerAvailabilitySerializer(serializers.ModelSerializer):

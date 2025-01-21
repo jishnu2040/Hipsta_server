@@ -4,8 +4,9 @@ from rest_framework.views import APIView
 from .serializers import *
 from rest_framework.response import Response
 from rest_framework import generics, status
-from apps.core.models import ServiceType
-from apps.partner_portal.models import PartnerDetail, PartnerAvailability, EmployeeAvailability
+from apps.core.models import ServiceType, Service
+from apps.partner_portal.models import PartnerDetail, PartnerAvailability, EmployeeAvailability, Employee
+
 
 
 class PartnerByServiceView(APIView):
@@ -182,15 +183,43 @@ class ServicesView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+
 class EmployeeListByPartnerView(APIView):
+    """
+    API view to fetch employees under a specific partner and filtered by service_type.
+    """
     def get(self, request, partner_id):
-        # Filter employees by partner_id
-        employees = Employee.objects.filter(partner_id=partner_id, is_active=True)
-        
-        # Serialize the employees data
+        # Extract the service_id from query parameters
+        service_id = request.query_params.get('service_id')
+        if not service_id:
+            return Response(
+                {"error": "Service ID is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate if the service exists under the given partner
+        try:
+            service = Service.objects.get(id=service_id, partner_id=partner_id, status='active')
+        except Service.DoesNotExist:
+            return Response(
+                {"error": "Service not found or does not belong to the given partner."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Get the related service type
+        service_type = service.business_type
+
+        # Fetch employees linked to the service_type
+        employees = Employee.objects.filter(
+            partner_id=partner_id,
+            is_active=True,
+            service_types=service_type  # Filter employees associated with the service's service_type
+        ).distinct()  # Use distinct to avoid duplicates if employees belong to multiple service types
+
+        # Serialize the employee data
         serializer = EmployeeSerializer(employees, many=True)
-        
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 class AvailableTimeSlotsView(APIView):

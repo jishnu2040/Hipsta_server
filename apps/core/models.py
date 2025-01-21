@@ -52,7 +52,7 @@ class Service(models.Model):
         """
         Format the price as a string with two decimal points.
         """
-        return f"${self.price:.2f}"
+        return f"{self.price:.2f}"
 
     def get_duration_display(self):
         """
