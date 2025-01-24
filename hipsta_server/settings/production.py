@@ -2,7 +2,7 @@ from .base import *
 
 DEBUG = False
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['yourdomain.com'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['hipsta.live', 'www.hipsta.live'])
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -20,3 +20,11 @@ DATABASES = {
         'PORT': env('DB_PORT', default='5432'),
     }
 }
+
+
+# Security settings (to enhance security in production)
+SECURE_SSL_REDIRECT = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True

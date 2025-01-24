@@ -4,10 +4,12 @@ from .views import (
     BannerViewSet,
     ServiceTypeListCreateView,
     ServiceListView,
+    ServiceTypeViewSet,
 )
 
 router = DefaultRouter()
 router.register(r'banners', BannerViewSet, basename='banner')
+router.register(r'service-types', ServiceTypeViewSet, basename='service-type')
 
 urlpatterns = [
     # Include the router URLs

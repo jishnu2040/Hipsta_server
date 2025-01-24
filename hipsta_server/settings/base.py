@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django.contrib.sites',
     'rest_framework_simplejwt.token_blacklist',
+
+    
     'apps.accounts',
     'apps.customer_portal',   
     'apps.booking',            
@@ -44,13 +46,14 @@ INSTALLED_APPS = [
 ]
 
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [env('REDIS_HOST', default='redis://127.0.0.1:6379')],
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis://redis:6379")], 
         },
     },
 }
+
 
 SITE_ID = 1
 

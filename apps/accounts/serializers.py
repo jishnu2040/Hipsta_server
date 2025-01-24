@@ -168,8 +168,6 @@ class LogoutUserSerializer(serializers.Serializer):
             token.blacklist()
         except TokenError:
             self.fail('bad_token')
-
-# Serializer for Google Sign-In
 class GoogleSignInSerializer(serializers.Serializer):
     access_token = serializers.CharField(min_length=6)
 
@@ -178,17 +176,43 @@ class GoogleSignInSerializer(serializers.Serializer):
         google_user_data = Google.validate(access_token)
         if isinstance(google_user_data, str):  # Check if Google.validate returned an error message
             raise serializers.ValidationError("This token is invalid or has expired")
+        
         try:
             user_id = google_user_data["sub"]
-        except:
+        except KeyError:
             raise serializers.ValidationError("This token is invalid or has expired")
+        
         if google_user_data['aud'] != settings.GOOGLE_CLIENT_ID:
             raise AuthenticationFailed(detail="Could not verify user")
+        
         email = google_user_data['email']
         first_name = google_user_data.get('given_name', '')
-        last_name = google_user_data.get('family_name', '') 
+        last_name = google_user_data.get('family_name', '')
         provider = "google"
-        return register_social_user(provider, email, first_name, last_name)
+
+        # Register or fetch the user
+        user = register_social_user(provider, email, first_name, last_name)
+
+        # Fetch the user ID using the email
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User not found.")
+        
+        # Generate tokens
+        tokens = user.token()
+
+        # Return the validated data, including tokens
+        return {
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "user_id": user.id,
+            "access_token": tokens['access'],
+            "refresh_token": tokens['refresh'],
+        }
+
+
 
 
 

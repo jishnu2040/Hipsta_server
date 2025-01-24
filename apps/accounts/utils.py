@@ -7,7 +7,6 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
-
 # Generate a 6-digit OTP
 def generateOtp():
     otp = "".join(str(random.randint(1, 9)) for _ in range(6))
@@ -30,16 +29,30 @@ def send_normal_email(data):
     
 
 # Validate Google OAuth2 token
+
+
 class Google:
     @staticmethod
     def validate(access_token):
         try:
-            id_info = id_token.verify_oauth2_token(access_token, requests.Request())
-            if "accounts.google.com" in id_info['iss']:
-                return id_info
+            # Verify the token and handle a possible clock skew (10 seconds)
+            id_info = id_token.verify_oauth2_token(
+                access_token, 
+                requests.Request(), 
+                clock_skew_in_seconds=10
+            )
+
+            # Check the issuer to ensure it's Google
+            if id_info.get("iss") not in ["accounts.google.com", "https://accounts.google.com"]:
+                raise ValidationError("Invalid token issuer")
+
+            return id_info
+
         except ValueError as e:
-            print("Google token validation error:", str(e))
-            raise serializers.ValidationError("Invalid or expired token")
+            # Catch token errors and raise a validation error
+            error_message = f"Google token validation error: {str(e)}"
+            print(error_message)
+            raise ValidationError("Invalid or expired token")
 
 
 

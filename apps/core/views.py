@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from apps.partner_portal.models import PartnerDetail
 from rest_framework.decorators import action
-
+from rest_framework import viewsets
 
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -39,6 +39,10 @@ class ServiceTypeListCreateView(generics.ListCreateAPIView):
 
 
 class ServiceListView(generics.ListAPIView):
-    queryset = Service.objects.all()  # Get all services
-    serializer_class = ServiceSerializer  # Use the ServiceSerializer for data formatting
+    queryset = Service.objects.all()  
+    serializer_class = ServiceSerializer 
 
+class ServiceTypeViewSet(viewsets.ModelViewSet):
+    queryset = ServiceType.objects.all()
+    serializer_class = ServiceTypeSerializer
+   

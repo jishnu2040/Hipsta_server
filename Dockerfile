@@ -1,19 +1,34 @@
-# Use a lightweight Python image
-FROM python:3.10-slim
+### Backend Dockerfile
 
-# Set working directory
+# Stage 1: Install dependencies
+FROM python:3.10.12-slim AS builder
+
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies in a virtual environment
+COPY requirements.txt . 
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the code
+# Stage 2: Final Image
+FROM python:3.10.12-slim
+
+WORKDIR /app
+
+# Copy the virtual environment from the builder stage
+COPY --from=builder /opt/venv /opt/venv
+
+# Copy project files
 COPY . .
 
-# Expose the backend port
+# Set PATH for the virtual environment
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Set environment variables for production
+ENV DJANGO_SETTINGS_MODULE=hipsta_server.settings.production
+
+# Expose the Django server port
 EXPOSE 8000
 
-# Command to run the server
+# Set default command to run ASGI server
 CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "hipsta_server.asgi:application"]
-

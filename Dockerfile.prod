@@ -1,0 +1,28 @@
+# Production Dockerfile
+
+# Stage 1: Install dependencies
+FROM python:3.10.12-slim AS builder
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Final Image
+FROM python:3.10.12-slim
+
+WORKDIR /app
+
+COPY --from=builder /opt/venv /opt/venv
+COPY . .
+
+# Set environment variables for production
+ENV PATH="/opt/venv/bin:$PATH"
+ENV DJANGO_SETTINGS_MODULE=hipsta_server.settings.production
+
+# Expose the port for the Django app
+EXPOSE 8000
+
+# Use gunicorn for production (Daphne is more for development)
+CMD ["gunicorn", "-b", "0.0.0.0:8000", "hipsta_server.wsgi:application"]
