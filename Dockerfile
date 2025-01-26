@@ -1,3 +1,4 @@
+
 ### Backend Dockerfile
 
 # Stage 1: Install dependencies
@@ -6,7 +7,7 @@ FROM python:3.10.12-slim AS builder
 WORKDIR /app
 
 # Install dependencies in a virtual environment
-COPY requirements.txt . 
+COPY requirements.txt .
 RUN python -m venv /opt/venv && \
     /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
@@ -23,9 +24,6 @@ COPY . .
 
 # Set PATH for the virtual environment
 ENV PATH="/opt/venv/bin:$PATH"
-
-# Set environment variables for production
-ENV DJANGO_SETTINGS_MODULE=hipsta_server.settings.production
 
 # Expose the Django server port
 EXPOSE 8000

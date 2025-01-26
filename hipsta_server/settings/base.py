@@ -10,7 +10,8 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Initialize environment variables
-env = environ.Env()
+# env = environ.Env()
+env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))  # Read environment variables from .env
 
 # SECURITY WARNING: keep the secret key used in production secret!
