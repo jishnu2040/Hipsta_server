@@ -29,8 +29,12 @@ jobs:
       - name: Deploy with Docker
         run: |
           ssh root@${{ secrets.DO_HOST }} "
-            cd /root/hipsta &&
-            git pull origin main &&
+            if [ ! -d '/root/hipsta' ]; then
+              git clone git@github.com:jishnu2040/hipsta.git /root/hipsta;
+            else
+              cd /root/hipsta && git pull origin main;
+            fi &&
             docker pull jishnu2040/hipsta-backend:latest &&
             docker compose -f docker-compose.yml --env-file <(echo -e 'SECRET_KEY=${{ secrets.SECRET_KEY }}\nDB_NAME=${{ secrets.DB_NAME }}\nDB_USER=${{ secrets.DB_USER }}\nDB_PASSWORD=${{ secrets.DB_PASSWORD }}\nREDIS_URL=${{ secrets.REDIS_URL }}') up --build -d
           "
+
