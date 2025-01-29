@@ -5,14 +5,14 @@ from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
+from rest_framework import viewsets
 from apps.accounts.models import User
 from apps.booking.services import (
     get_all_bookings_grouped_by_month,
     get_top_partners_by_bookings,
     get_booking_details_with_names,
 )
-from apps.partner_portal.models import PartnerDetail,SubscriptionPlan
+from apps.partner_portal.models import PartnerDetail,SubscriptionPlan, Specialization
 
 from .serializers import (
     AdminLoginSerializer,
@@ -21,7 +21,12 @@ from .serializers import (
     MonthlyBookingSummarySerializer,
     BookingDetailsSerializer,
     PartnerDetailSerializer,
+    SpecializationSerializer
 )
+
+
+
+
 
 # ----------------------------
 # Admin Authentication Views
@@ -182,3 +187,13 @@ class RejectPartnerView(APIView):
             return Response({"message": "Partner rejected successfully."}, status=status.HTTP_200_OK)
         except PartnerDetail.DoesNotExist:
             return Response({"error": "Partner not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+class SpecializationViewSet(viewsets.ModelViewSet):
+    """
+    A ViewSet for viewing, creating, updating, and deleting Specializations.
+    """
+    queryset = Specialization.objects.all()
+    serializer_class = SpecializationSerializer
+    # permission_classes = [IsAuthenticatedOrReadOnly]

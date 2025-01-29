@@ -1,3 +1,4 @@
+
 services:
   backend:
     build:
@@ -8,25 +9,24 @@ services:
       - media_data:/app/media
       - static_data:/app/static
     ports:
-      - "80:8000"
+      - "8000:8000"
     env_file:
       - ./.env.production
     command: >
-      bash -c "
-      ./wait_for_db.sh db 5432 &&
-      python manage.py migrate &&
-      python manage.py collectstatic --noinput &&
-      daphne -b 0.0.0.0 -p 8000 hipsta_server.asgi:application
-      "
+      bash -c "python manage.py migrate &&
+               python manage.py collectstatic --noinput &&
+               daphne -b 0.0.0.0 -p 8000 hipsta_server.asgi:application"
     depends_on:
       - db
       - redis
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/auth/health/"]
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - hipsta-network
 
   db:
     image: postgres:15-alpine
@@ -34,13 +34,14 @@ services:
       POSTGRES_USER: hipsta_prod_user
       POSTGRES_PASSWORD: Stronghipstapassword123
       POSTGRES_DB: hipsta_prod_db
-    command: postgres -c listen_addresses='*'
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     restart: always
-    # Remove the old `command` and let the default entrypoint handle initialization
+    networks:
+      - hipsta-network
+
   redis:
     image: redis:7-alpine
     ports:
@@ -48,43 +49,53 @@ services:
     volumes:
       - redis_data:/data
     restart: always
+    networks:
+      - hipsta-network
 
   celery:
     build:
-      context: .  # Same context 
-      dockerfile: Dockerfile.prod  
+      context: .  # Same context
+      dockerfile: Dockerfile.prod
     command: celery -A hipsta_server worker --pool=solo -l info
     depends_on:
       - redis
       - db
     env_file:
-      - ./.env.production  
+      - ./.env.production
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "celery -A hipsta_server inspect ping"]
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - hipsta-network
 
   celery-beat:
     build:
-      context: .  # Same context 
-      dockerfile: Dockerfile.prod  
+      context: .  # Same context
+      dockerfile: Dockerfile.prod
     command: celery -A hipsta_server beat --loglevel=info
     depends_on:
       - redis
       - db
     env_file:
-      - ./.env.production 
+      - ./.env.production
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "celery -A hipsta_server inspect ping"]
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - hipsta-network
 
 volumes:
   db_data:
   media_data:
   static_data:
   redis_data:
+
+networks:
+  hipsta-network:
+    driver: bridge

@@ -7,8 +7,6 @@ from datetime import datetime, timedelta
 
 
 
-
-
 def generate_presigned_url(file_name, file_type=None, expiration=3600):
     """
     Generate a pre-signed URL for uploading a file to S3.

@@ -273,3 +273,28 @@ class UserCountView(APIView):
         return Response({
             'user_count': user_count
         })
+
+
+    
+
+from django.http import JsonResponse
+from django.db import connection
+
+def health_check(request):
+    """
+    Health check endpoint to monitor app status.
+    """
+    # Check database connection
+    try:
+        connection.ensure_connection()
+        db_status = "healthy"
+    except Exception as e:
+        db_status = f"unhealthy: {str(e)}"
+
+    # Example response (you can extend this)
+    data = {
+        "status": "ok" if db_status == "healthy" else "error",
+        "database": db_status,
+    }
+    status_code = 200 if db_status == "healthy" else 500
+    return JsonResponse(data, status=status_code)

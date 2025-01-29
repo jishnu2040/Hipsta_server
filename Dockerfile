@@ -1,6 +1,3 @@
-
-### Backend Dockerfile
-
 # Stage 1: Install dependencies
 FROM python:3.10.12-slim AS builder
 
@@ -24,9 +21,11 @@ COPY . .
 
 # Set PATH for the virtual environment
 ENV PATH="/opt/venv/bin:$PATH"
+ENV DJANGO_SETTINGS_MODULE=hipsta_server.settings.development
 
 # Expose the Django server port
 EXPOSE 8000
 
 # Set default command to run ASGI server
 CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "hipsta_server.asgi:application"]
+

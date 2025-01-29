@@ -10,7 +10,8 @@ from .views import (
     LogoutUserView,
     GoogleSignInView,
     ProfileView,
-    UserCountView
+    UserCountView,
+    health_check
 )
 
 urlpatterns = [
@@ -26,4 +27,6 @@ urlpatterns = [
     path('google/', GoogleSignInView.as_view(), name='google-signin'),
     path('profile/<uuid:user_id>/', ProfileView.as_view(), name='profile'),
     path('user-count/', UserCountView.as_view(), name='user-count'),
+    path("health/", health_check, name="health_check"),
+    
 ]

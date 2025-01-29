@@ -5,8 +5,8 @@ from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 
-# Setup Django environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hipsta_server.settings.production")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hipsta_server.settings.development')
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hipsta_server.settings.production')
 django.setup()
 
 from apps.tickets.routing import websocket_urlpatterns as ticket_urlpatterns
@@ -21,4 +21,4 @@ application = ProtocolTypeRouter({
             )
         )
     ),
-})
+})               

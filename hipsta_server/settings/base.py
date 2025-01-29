@@ -10,9 +10,8 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Initialize environment variables
-# env = environ.Env()
-env = environ.Env(DEBUG=(bool, False))
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))  # Read environment variables from .env
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))   # Base .env as fallback
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
@@ -46,17 +45,8 @@ INSTALLED_APPS = [
     'apps.tickets'
 ]
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("redis://redis:6379")], 
-        },
-    },
-}
-
-
 SITE_ID = 1
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -75,16 +65,12 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ALLOW_ALL_ORIGINS = True
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:80",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:4173",
-    "http://localhost:8000",
-    "http://localhost:3000",
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
+    "https://hipsta.live", "https://www.hipsta.live",
+    "http://localhost:80", "http://localhost:5173", "http://127.0.0.1:5173",
+    "http://localhost:4173", "http://localhost:8000", "http://localhost:3000",
     "http://127.0.0.1:3000",
-]
+])
 
 CORS_ALLOW_METHODS = [
     'GET',
@@ -96,6 +82,11 @@ CORS_ALLOW_METHODS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://hipsta.live",  # Vercel frontend domain
+    "https://www.hipsta.live",  # Include 'www' if used
+]
 
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -148,7 +139,6 @@ WSGI_APPLICATION = 'hipsta_server.wsgi.application'
 ASGI_APPLICATION = 'hipsta_server.asgi.application'
 
 STATIC_URL = 'static/'
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 USE_TZ = True 
@@ -163,15 +153,18 @@ EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
 
-# Celery configuration
-CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://redis:6379/0')
-CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://redis:6379/0')
+# Redis Configuration
+REDIS_URL = env('REDIS_URL')
+
+# Celery Configuration
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default=REDIS_URL)
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default=REDIS_URL)
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Kolkata'
 
-CELERY_RESULT_BACKEND = 'django-db'
+
 
 # Celery Beat schedule
 CELERY_BEAT_SCHEDULE = {
@@ -187,6 +180,17 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.partner_portal.tasks.expire_subscriptions',
         'schedule': crontab(hour=0, minute=0),
     }
+}
+
+
+# Channel Layers (WebSockets)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [env('REDIS_URL', default='redis://localhost:6379/0')],
+        },
+    },
 }
 
 # Google and AWS keys

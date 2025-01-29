@@ -117,7 +117,7 @@ class PartnerListView(generics.ListAPIView):
     pagination_class = PartnerPagination  # Set pagination class here
 
     def get_queryset(self):
-        queryset = PartnerDetail.objects.all()
+        queryset = PartnerDetail.objects.filter(is_approved=True)
         lat = self.request.query_params.get('latitude')
         lng = self.request.query_params.get('longitude')
 

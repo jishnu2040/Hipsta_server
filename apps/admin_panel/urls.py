@@ -1,5 +1,6 @@
 
-from django.urls import path
+from django.urls import path,include
+from rest_framework.routers import DefaultRouter
 from .views import (
     AdminLogin,
     AdminUserList,
@@ -12,8 +13,18 @@ from .views import (
     SubscriptionPlanListView,
     TopPartnersView,
     UnblockUserView,
+    SpecializationViewSet
+
 )
+
+# Create a router and register the SpecializationViewSet
+router = DefaultRouter()
+router.register(r'specializations', SpecializationViewSet, basename='specialization')
+
+
 urlpatterns = [
+
+    path('', include(router.urls)), 
     # Authentication
     path('login/', AdminLogin.as_view(), name='AdminLogin'),
 

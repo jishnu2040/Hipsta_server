@@ -1,5 +1,5 @@
-# Stage 1: Install dependencies (renamed to "dependencies")
-FROM python:3.10.12-slim AS dependencies 
+# Stage 1: Install dependencies
+FROM python:3.10.12-slim AS builder
 
 WORKDIR /app
 
@@ -12,21 +12,21 @@ FROM python:3.10.12-slim
 
 WORKDIR /app
 
-# Copy from the renamed stage
-COPY --from=dependencies /opt/venv /opt/venv
-COPY wait_for_db.sh /app/
+COPY --from=builder /opt/venv /opt/venv
 COPY . .
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    postgresql-client \
-    && apt-get clean
-
+# Set environment variables for production
 ENV PATH="/opt/venv/bin:$PATH"
 ENV DJANGO_SETTINGS_MODULE=hipsta_server.settings.production
-RUN /opt/venv/bin/pip install --no-cache-dir "twisted[http2,tls]"
 
+# Install system dependencies for Daphne and other production dependencies (e.g., PostgreSQL, curl)
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    curl \
+    && apt-get clean
+
+# Expose the necessary ports
 EXPOSE 8000
 
+# Use Daphne for ASGI (WebSocket) connections
 CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "hipsta_server.asgi:application"]

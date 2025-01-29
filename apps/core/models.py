@@ -10,7 +10,7 @@ class ServiceType(models.Model):
     """
     name = models.CharField(max_length=125, unique=True)
     description = models.CharField(max_length=255, null=True)
-    image = models.ImageField(upload_to='service_type', blank=True, null=True)
+    image_url = models.CharField(max_length=255, blank=True, null=True)  # Updated field
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -68,13 +68,14 @@ class Service(models.Model):
         return self.business_type.name if self.business_type else None
 
 
+
 class Banner(models.Model):
     """
     Model representing a promotional banner.
     """
     title = models.CharField(max_length=255)
     description = models.TextField()
-    image = models.ImageField(upload_to='banners/')
+    image_url = models.CharField(max_length=1024, null=True, blank=True)  # Store S3 URL as a string
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)

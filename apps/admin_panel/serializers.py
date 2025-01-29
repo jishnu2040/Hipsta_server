@@ -2,7 +2,8 @@ from django.contrib.auth import authenticate
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from apps.accounts.models import User
-from apps.partner_portal.models import SubscriptionPlan, PartnerDetail
+from apps.partner_portal.models import SubscriptionPlan, PartnerDetail, Specialization
+
 
 # ----------------------------
 # Admin Authentication Serializers
@@ -152,3 +153,10 @@ class PartnerDetailSerializer(serializers.ModelSerializer):
             'id', 'business_name', 'website', 'team_size',
             'is_approved', 'license_certificate_image'
         ]
+
+
+
+class SpecializationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Specialization
+        fields = ['id', 'name']
