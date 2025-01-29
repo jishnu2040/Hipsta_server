@@ -1,0 +1,29 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy with Docker
+        run: |
+          ssh deployer@${{ secrets.DO_HOST }} << 'EOF'
+          cd /home/deployer/hipsta
+          git pull origin main
+          docker compose -f docker-compose.yml --env-file <(echo -e "SECRET_KEY=${{ secrets.SECRET_KEY }}\nDB_NAME=${{ secrets.DB_NAME }}\nDB_USER=${{ secrets.DB_USER }}\nDB_PASSWORD=${{ secrets.DB_PASSWORD }}\nREDIS_URL=${{ secrets.REDIS_URL }}") up --build -d
+          EOF
