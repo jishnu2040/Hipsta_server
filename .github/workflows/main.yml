@@ -27,35 +27,8 @@ jobs:
       - name: Deploy with Docker
         run: |
           ssh root@${{ secrets.DO_HOST }} << 'EOF'
-          set -e  # Exit on any error
-
-          # Ensure the project directory exists
-          if [ ! -d "/root/hipsta" ]; then
-            mkdir -p /root/hipsta
-            git clone git@github.com:jishnu2040/hipsta.git /root/hipsta
-          fi
-
           cd /root/hipsta
-
-          # Ensure it's a Git repo before pulling
-          if [ -d ".git" ]; then
-            git reset --hard
-            git pull origin main
-          fi
-
-          # Pull the latest Docker image
+          git pull origin main
           docker pull jishnu2040/hipsta-backend:latest
-
-          # Create an updated .env file
-          cat <<EOT > .env
-          SECRET_KEY=${{ secrets.SECRET_KEY }}
-          DB_NAME=${{ secrets.DB_NAME }}
-          DB_USER=${{ secrets.DB_USER }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          REDIS_URL=${{ secrets.REDIS_URL }}
-          EOT
-
-          # Stop old containers, rebuild, and restart services
-          docker compose down
-          docker compose --env-file .env up --build -d
+          docker compose -f docker-compose.yml --env-file <(echo -e "SECRET_KEY=${{ secrets.SECRET_KEY }}\nDB_NAME=${{ secrets.DB_NAME }}\nDB_USER=${{ secrets.DB_USER }}\nDB_PASSWORD=${{ secrets.DB_PASSWORD }}\nREDIS_URL=${{ secrets.REDIS_URL }}") up --build -d
           EOF
