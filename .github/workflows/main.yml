@@ -17,7 +17,7 @@ jobs:
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Set up SSH
+    - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.DO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
@@ -26,9 +26,8 @@ jobs:
           eval $(ssh-agent -s)
           ssh-add ~/.ssh/id_rsa
           
-          # Temporarily disable strict checking and enable password auth
-          ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@${{ secrets.DO_HOST }} "echo 'Temporarily allowing all permissions'"
-
+          # Check SSH authentication
+          ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=yes -i ~/.ssh/id_rsa root@${{ secrets.DO_HOST }} "echo 'Successfully connected'"
 
       - name: Deploy with Docker
         run: |
