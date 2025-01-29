@@ -5,7 +5,6 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     volumes:
-      - .:/app:cached
       - media_data:/app/media
       - static_data:/app/static
     ports:
@@ -39,6 +38,11 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hipsta_prod_user -d hipsta_prod_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - hipsta-network
 
@@ -64,10 +68,11 @@ services:
       - ./.env.production
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "celery -A hipsta_server inspect ping"]
+      test: ["CMD-SHELL", "celery -A hipsta_server status"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+
     networks:
       - hipsta-network
 

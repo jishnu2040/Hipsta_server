@@ -6,8 +6,8 @@ from django.conf import settings
 
 
 # Set the default Django settings module for the 'celery' program.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hipsta_server.settings.development')
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hipsta_server.settings.production')
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hipsta_server.settings.development')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hipsta_server.settings.production')
 
 # Create an instance of Celery
 app = Celery('hipsta_server')

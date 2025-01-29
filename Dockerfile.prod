@@ -1,32 +1,29 @@
-# Stage 1: Install dependencies
+# Use multi-stage build for smaller final image
 FROM python:3.10.12-slim AS builder
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN python -m venv /opt/venv && \
-    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+# Use non-root user for security
+RUN useradd --create-home appuser
+USER appuser
 
-# Stage 2: Final Image
+COPY requirements.txt . 
+RUN python -m venv /opt/venv && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
 FROM python:3.10.12-slim
-
 WORKDIR /app
 
 COPY --from=builder /opt/venv /opt/venv
 COPY . .
 
-# Set environment variables for production
 ENV PATH="/opt/venv/bin:$PATH"
 ENV DJANGO_SETTINGS_MODULE=hipsta_server.settings.production
 
-# Install system dependencies for Daphne and other production dependencies (e.g., PostgreSQL, curl)
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    curl \
-    && apt-get clean
+RUN apt-get update && apt-get install -y libpq-dev curl && apt-get clean
 
-# Expose the necessary ports
+# Security improvement: Run as non-root user
+USER appuser
+
 EXPOSE 8000
 
-# Use Daphne for ASGI (WebSocket) connections
 CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "hipsta_server.asgi:application"]
