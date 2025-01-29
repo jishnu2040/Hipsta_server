@@ -13,7 +13,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up SSH Key
+      - name: Set up Docker
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.DO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
@@ -22,9 +26,9 @@ jobs:
 
       - name: Deploy with Docker
         run: |
-          ssh -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} << 'EOF'
+          ssh root@${{ secrets.DO_HOST }} << 'EOF'
           cd /home/deployer/hipsta
           git pull origin main
           docker pull jishnu2040/hipsta-backend:latest
-          docker compose -f docker-compose.yml up --build -d
+          docker compose -f docker-compose.yml --env-file <(echo -e "SECRET_KEY=${{ secrets.SECRET_KEY }}\nDB_NAME=${{ secrets.DB_NAME }}\nDB_USER=${{ secrets.DB_USER }}\nDB_PASSWORD=${{ secrets.DB_PASSWORD }}\nREDIS_URL=${{ secrets.REDIS_URL }}") up --build -d
           EOF
