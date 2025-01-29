@@ -25,6 +25,10 @@ jobs:
           ssh-keyscan -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts
           eval $(ssh-agent -s)
           ssh-add ~/.ssh/id_rsa
+          
+          # Temporarily disable strict checking and enable password auth
+          ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@${{ secrets.DO_HOST }} "echo 'Temporarily allowing all permissions'"
+
 
       - name: Deploy with Docker
         run: |
