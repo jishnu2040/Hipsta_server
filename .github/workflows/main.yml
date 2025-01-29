@@ -23,12 +23,14 @@ jobs:
           echo "${{ secrets.DO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/id_rsa
 
       - name: Deploy with Docker
         run: |
-          ssh root@${{ secrets.DO_HOST }} << 'EOF'
-          cd /root/hipsta
-          git pull origin main
-          docker pull jishnu2040/hipsta-backend:latest
-          docker compose -f docker-compose.yml --env-file <(echo -e "SECRET_KEY=${{ secrets.SECRET_KEY }}\nDB_NAME=${{ secrets.DB_NAME }}\nDB_USER=${{ secrets.DB_USER }}\nDB_PASSWORD=${{ secrets.DB_PASSWORD }}\nREDIS_URL=${{ secrets.REDIS_URL }}") up --build -d
-          EOF
+          ssh root@${{ secrets.DO_HOST }} "
+            cd /root/hipsta &&
+            git pull origin main &&
+            docker pull jishnu2040/hipsta-backend:latest &&
+            docker compose -f docker-compose.yml --env-file <(echo -e 'SECRET_KEY=${{ secrets.SECRET_KEY }}\nDB_NAME=${{ secrets.DB_NAME }}\nDB_USER=${{ secrets.DB_USER }}\nDB_PASSWORD=${{ secrets.DB_PASSWORD }}\nREDIS_URL=${{ secrets.REDIS_URL }}') up --build -d
+          "
