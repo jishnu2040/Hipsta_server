@@ -5,12 +5,6 @@ WORKDIR /app
 # Install dependencies for building Python packages
 RUN apt-get update && apt-get install -y build-essential libpq-dev curl && apt-get clean
 
-# Create a non-root user
-RUN useradd -ms /bin/bash appuser
-
-# Ensure that appuser has access to the app directory
-RUN chown -R appuser:appuser /app
-
 # Temporarily switch to root user for installation of dependencies
 USER root
 
@@ -35,8 +29,8 @@ COPY . .
 ENV PATH="/app/venv/bin:$PATH"
 ENV DJANGO_SETTINGS_MODULE=hipsta_server.settings.production
 
-# Security improvement: Switch to appuser after installation is complete
-USER appuser
+# Run as root user
+USER root
 
 EXPOSE 8000
 
