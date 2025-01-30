@@ -5,8 +5,8 @@ WORKDIR /app
 # Install dependencies for building Python packages
 RUN apt-get update && apt-get install -y build-essential libpq-dev curl && apt-get clean
 
-# Create a non-root user for security
-RUN useradd --create-home appuser
+# Create a non-root user
+RUN useradd --create-home --shell /bin/bash appuser
 
 # Set appropriate permissions for the app folder
 RUN chown -R appuser:appuser /app
