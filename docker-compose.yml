@@ -36,9 +36,10 @@ services:
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
       CELERY_TIMEZONE: ${CELERY_TIMEZONE}
     command: >
-      bash -c "python manage.py migrate &&
-               python manage.py collectstatic --noinput &&
-               daphne -b 0.0.0.0 -p 8000 hipsta_server.asgi:application"
+      bash -c "/app/venv/bin/python manage.py migrate &&
+               /app/venv/bin/python manage.py collectstatic --noinput &&
+               /app/venv/bin/daphne -b 0.0.0.0 -p 8000 hipsta_server.asgi:application"
+
     depends_on:
       - db
       - redis
