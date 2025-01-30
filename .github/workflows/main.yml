@@ -1,4 +1,4 @@
-name: Debug SSH to DigitalOcean
+name: Deploy to DigitalOcean
 
 on:
   push:
@@ -6,10 +6,17 @@ on:
       - main
 
 jobs:
-  debug-ssh:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
@@ -18,9 +25,17 @@ jobs:
           ssh-keyscan -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts
           eval $(ssh-agent -s)
           ssh-add ~/.ssh/id_rsa
-          
-          # List keys added to the SSH agent
-          ssh-add -l
 
-          # Debug SSH connection
-          ssh -vvv -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "echo 'Successfully connected'"
+      - name: Deploy with Docker
+        run: |
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "
+            if [ ! -d '/root/hipsta' ]; then
+              git clone https://github.com/jishnu2040/hipsta.git /root/hipsta;
+            else
+              cd /root/hipsta && git pull origin main;
+            fi &&
+            echo -e \"SECRET_KEY=${{ secrets.SECRET_KEY }}\nDB_NAME=${{ secrets.DB_NAME }}\nDB_USER=${{ secrets.DB_USER }}\nDB_PASSWORD=${{ secrets.DB_PASSWORD }}\nREDIS_URL=${{ secrets.REDIS_URL }}\" > /root/hipsta/.env &&
+            docker login -u \"${{ secrets.DOCKER_USERNAME }}\" -p \"${{ secrets.DOCKER_PASSWORD }}\" &&
+            docker pull jishnu2040/hipsta-backend:latest &&
+            docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env up --build -d
+          "
