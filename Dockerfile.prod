@@ -1,4 +1,3 @@
-# Use multi-stage build for a smaller final image
 FROM python:3.10.12-slim AS builder
 
 WORKDIR /app
@@ -6,13 +5,15 @@ WORKDIR /app
 # Install dependencies for building Python packages
 RUN apt-get update && apt-get install -y build-essential libpq-dev curl && apt-get clean
 
-# Use non-root user for security
+# Create a non-root user for security
 RUN useradd --create-home appuser
+
+# Set appropriate permissions for the app folder
+RUN chown -R appuser:appuser /app
+
 USER appuser
 
-COPY requirements.txt . 
-
-#  Fix: Create virtual environment in /app/venv (writable location)
+COPY requirements.txt .
 RUN python -m venv /app/venv && /app/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Final stage: Slim Python image
@@ -22,20 +23,19 @@ WORKDIR /app
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y libpq-dev curl && apt-get clean
 
-# Fix: Copy virtual environment from builder stage to /app/venv
+# Copy the virtual environment from builder stage
 COPY --from=builder /app/venv /app/venv
 
 # Copy application code
 COPY . .
 
-# Fix: Update PATH to use /app/venv
+# Set environment variables
 ENV PATH="/app/venv/bin:$PATH"
 ENV DJANGO_SETTINGS_MODULE=hipsta_server.settings.production
 
 # Security improvement: Run as non-root user
-RUN useradd --create-home appuser
 USER appuser
 
 EXPOSE 8000
 
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "hipsta_server.asgi:application"]
+CMD ["/app/venv/bin/python", "manage.py", "runserver", "0.0.0.0:8000"]
