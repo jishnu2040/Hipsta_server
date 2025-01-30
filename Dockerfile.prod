@@ -6,19 +6,15 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y build-essential libpq-dev curl && apt-get clean
 
 # Create a non-root user
-# Create a non-root user (this should be at the top of your Dockerfile)
 RUN useradd -ms /bin/bash appuser
 
 # Ensure that appuser has access to the app directory
 RUN chown -R appuser:appuser /app
 
+# Temporarily switch to root user for installation of dependencies
+USER root
 
-USER appuser
-
-# Create user and check
-RUN useradd -ms /bin/bash appuser && cat /etc/passwd
-
-
+# Copy the requirements file and install dependencies
 COPY requirements.txt .
 RUN python -m venv /app/venv && /app/venv/bin/pip install --no-cache-dir -r requirements.txt
 
@@ -39,9 +35,10 @@ COPY . .
 ENV PATH="/app/venv/bin:$PATH"
 ENV DJANGO_SETTINGS_MODULE=hipsta_server.settings.production
 
-# Security improvement: Run as non-root user
+# Security improvement: Switch to appuser after installation is complete
 USER appuser
 
 EXPOSE 8000
 
+# Run the Django server with the virtual environment
 CMD ["/app/venv/bin/python", "manage.py", "runserver", "0.0.0.0:8000"]
