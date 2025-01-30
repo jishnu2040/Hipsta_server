@@ -6,12 +6,18 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y build-essential libpq-dev curl && apt-get clean
 
 # Create a non-root user
-RUN useradd --create-home --shell /bin/bash appuser
+# Create a non-root user (this should be at the top of your Dockerfile)
+RUN useradd -ms /bin/bash appuser
 
-# Set appropriate permissions for the app folder
+# Ensure that appuser has access to the app directory
 RUN chown -R appuser:appuser /app
 
+
 USER appuser
+
+# Create user and check
+RUN useradd -ms /bin/bash appuser && cat /etc/passwd
+
 
 COPY requirements.txt .
 RUN python -m venv /app/venv && /app/venv/bin/pip install --no-cache-dir -r requirements.txt
