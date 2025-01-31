@@ -1,3 +1,4 @@
+# Build Stage
 FROM python:3.10.12-slim AS builder
 
 WORKDIR /app
@@ -5,14 +6,11 @@ WORKDIR /app
 # Install dependencies for building Python packages
 RUN apt-get update && apt-get install -y build-essential libpq-dev curl && apt-get clean
 
-# Temporarily switch to root user for installation of dependencies
-USER root
-
 # Copy the requirements file and install dependencies
 COPY requirements.txt .
 RUN python -m venv /app/venv && /app/venv/bin/pip install --no-cache-dir -r requirements.txt
 
-# Final stage: Slim Python image
+# Final Stage: Slim Python Image
 FROM python:3.10.12-slim
 WORKDIR /app
 
@@ -22,14 +20,15 @@ RUN apt-get update && apt-get install -y libpq-dev curl && apt-get clean
 # Copy the virtual environment from builder stage
 COPY --from=builder /app/venv /app/venv
 
-# Copy application code
+# Copy application code and environment variables file (.env)
 COPY . .
+COPY /root/hipsta/.env /root/hipsta/.env  
 
 # Set environment variables
 ENV PATH="/app/venv/bin:$PATH"
 ENV DJANGO_SETTINGS_MODULE=hipsta_server.settings.production
 
-# Run as root user
+# Run as root user (if necessary for specific tasks)
 USER root
 
 EXPOSE 8000
