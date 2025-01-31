@@ -28,10 +28,16 @@ jobs:
 
       - name: Deploy with Docker
         run: |
+          set -x  # Enable debug mode to print each command being executed
+          
           ssh -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "
+            set -x  # Enable debug mode inside the SSH session too
+            
             if [ ! -d '/root/hipsta' ]; then
+              echo 'Cloning repository...';
               git clone https://github.com/jishnu2040/hipsta.git /root/hipsta;
             else
+              echo 'Pulling latest changes...';
               cd /root/hipsta && git pull origin main;
             fi &&
           
