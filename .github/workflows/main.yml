@@ -27,50 +27,50 @@ jobs:
           ssh-add ~/.ssh/id_rsa
 
       - name: Deploy with Docker
-        run: |
-          ssh -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "
-            if [ ! -d '/root/hipsta' ]; then
-              git clone https://github.com/jishnu2040/hipsta.git /root/hipsta;
-            else
-              cd /root/hipsta && git pull origin main;
-            fi &&
+    run: |
+      ssh -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "
+        if [ ! -d '/root/hipsta' ]; then
+          git clone https://github.com/jishnu2040/hipsta.git /root/hipsta;
+        else
+          cd /root/hipsta && git pull origin main;
+        fi &&
 
-            # Ensure the .env.production file is correctly set up with all necessary variables
-            echo -e \"
-            SECRET_KEY=${{secrets.SECRET_KEY}}
-            DB_NAME=${{secrets.DB_NAME}}
-            DB_USER=${{secrets.DB_USER}}
-            DB_PASSWORD=${{secrets.DB_PASSWORD}}
-            DB_HOST=${{secrets.DB_HOST}}
-            DB_PORT=${{secrets.DB_PORT}}
-            REDIS_URL=${{secrets.REDIS_URL}}
-            CELERY_BROKER_URL=${{secrets.CELERY_BROKER_URL}}
-            CELERY_RESULT_BACKEND=${{secrets.CELERY_RESULT_BACKEND}}
-            EMAIL_HOST=${{secrets.EMAIL_HOST}}
-            EMAIL_PORT=${{secrets.EMAIL_PORT}}
-            EMAIL_HOST_USER=${{secrets.EMAIL_HOST_USER}}
-            EMAIL_HOST_PASSWORD=${{secrets.EMAIL_HOST_PASSWORD}}
-            EMAIL_USE_TLS=${{secrets.EMAIL_USE_TLS}}
-            EMAIL_USE_SSL=${{secrets.EMAIL_USE_SSL}}
-            DEFAULT_FROM_EMAIL=${{secrets.DEFAULT_FROM_EMAIL}}
-            AWS_ACCESS_KEY_ID=${{secrets.AWS_ACCESS_KEY_ID}}
-            AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}}
-            AWS_STORAGE_BUCKET_NAME=${{secrets.AWS_STORAGE_BUCKET_NAME}}
-            AWS_REGION=${{secrets.AWS_REGION}}
-            GOOGLE_CLIENT_ID=${{secrets.GOOGLE_CLIENT_ID}}
-            GOOGLE_CLIENT_SECRET=${{secrets.GOOGLE_CLIENT_SECRET}}
-            SOCIAL_PASSWORD=${{secrets.SOCIAL_PASSWORD}}
-            DEBUG=${{secrets.DEBUG}}
-            ALLOWED_HOSTS=${{secrets.ALLOWED_HOSTS}}
-            \" > /root/hipsta/.env.production &&
+        # Ensure the .env.production file is correctly set up with all necessary variables
+        echo -e \"
+        SECRET_KEY=${{secrets.SECRET_KEY}}
+        DB_NAME=${{secrets.DB_NAME}}
+        DB_USER=${{secrets.DB_USER}}
+        DB_PASSWORD=${{secrets.DB_PASSWORD}}
+        DB_HOST=${{secrets.DB_HOST}}
+        DB_PORT=${{secrets.DB_PORT}}
+        REDIS_URL=${{secrets.REDIS_URL}}
+        CELERY_BROKER_URL=${{secrets.CELERY_BROKER_URL}}
+        CELERY_RESULT_BACKEND=${{secrets.CELERY_RESULT_BACKEND}}
+        EMAIL_HOST=${{secrets.EMAIL_HOST}}
+        EMAIL_PORT=${{secrets.EMAIL_PORT}}
+        EMAIL_HOST_USER=${{secrets.EMAIL_HOST_USER}}
+        EMAIL_HOST_PASSWORD=${{secrets.EMAIL_HOST_PASSWORD}}
+        EMAIL_USE_TLS=${{secrets.EMAIL_USE_TLS}}
+        EMAIL_USE_SSL=${{secrets.EMAIL_USE_SSL}}
+        DEFAULT_FROM_EMAIL=${{secrets.DEFAULT_FROM_EMAIL}}
+        AWS_ACCESS_KEY_ID=${{secrets.AWS_ACCESS_KEY_ID}}
+        AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}}
+        AWS_STORAGE_BUCKET_NAME=${{secrets.AWS_STORAGE_BUCKET_NAME}}
+        AWS_REGION=${{secrets.AWS_REGION}}
+        GOOGLE_CLIENT_ID=${{secrets.GOOGLE_CLIENT_ID}}
+        GOOGLE_CLIENT_SECRET=${{secrets.GOOGLE_CLIENT_SECRET}}
+        SOCIAL_PASSWORD=${{secrets.SOCIAL_PASSWORD}}
+        DEBUG=${{secrets.DEBUG}}
+        ALLOWED_HOSTS=${{secrets.ALLOWED_HOSTS}}
+        \" > /root/hipsta/.env.production &&
 
-            # Ensure Docker login works on the server
-            docker login -u \"${{ secrets.DOCKER_USERNAME }}\" -p \"${{ secrets.DOCKER_PASSWORD }}\" &&
+        # Ensure Docker login works on the server
+        docker login -u \"${{ secrets.DOCKER_USERNAME }}\" -p \"${{ secrets.DOCKER_PASSWORD }}\" &&
 
-            # Pull latest image from Docker Hub
-            docker pull jishnu2040/hipsta-backend:latest &&
+        # Pull latest image from Docker Hub
+        docker pull jishnu2040/hipsta-backend:latest &&
 
-            # Stop any running containers and restart with updated environment variables
-            docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env.production down &&
-            docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env.production up --build -d
-          "
+        # Stop any running containers and restart with updated environment variables
+        docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env.production down &&
+        docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env.production up --build -d
+        
