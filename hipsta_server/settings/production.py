@@ -16,7 +16,16 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # Allowed Hosts
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['hipsta.live', 'www.hipsta.live','localhost', '127.0.0.1','localhost:8000'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
+    'hipsta.live', 
+    'www.hipsta.live', 
+    'api.hipsta.live',  
+    'localhost', 
+    '127.0.0.1', 
+    'localhost:8000',
+    '206.189.131.58'
+])
+
 
 # Static & Media files
 STATIC_URL = '/static/'
