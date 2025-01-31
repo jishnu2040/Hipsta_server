@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     volumes:
+      - /root/hipsta/.env.production:/root/hipsta/.env.production:ro 
       - media_data:/app/media
       - static_data:/app/static
     ports:
