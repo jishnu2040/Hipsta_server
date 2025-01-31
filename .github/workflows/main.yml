@@ -36,7 +36,7 @@ jobs:
             fi &&
 
             # Ensure the .env.production file is correctly set up with all necessary variables
-            echo -e \"
+            cat <<EOF > /root/hipsta/.env.production
             SECRET_KEY=${{ secrets.SECRET_KEY }}
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USER=${{ secrets.DB_USER }}
@@ -62,7 +62,7 @@ jobs:
             SOCIAL_PASSWORD=${{ secrets.SOCIAL_PASSWORD }}
             DEBUG=${{ secrets.DEBUG }}
             ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}
-            \" > /root/hipsta/.env.production &&
+            EOF
 
             # Ensure Docker login works on the server
             docker login -u \"${{ secrets.DOCKER_USERNAME }}\" -p \"${{ secrets.DOCKER_PASSWORD }}\" &&
