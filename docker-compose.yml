@@ -35,14 +35,12 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
       CELERY_TIMEZONE: ${CELERY_TIMEZONE}
-      
     env_file:
-      - /root/hipsta/.env
+      - /root/hipsta/.env  # Ensure absolute path to the .env file on the server
     command: >
       bash -c "/app/venv/bin/python manage.py migrate &&
                /app/venv/bin/python manage.py collectstatic --noinput &&
                /app/venv/bin/daphne -b 0.0.0.0 -p 8000 hipsta_server.asgi:application"
-
     depends_on:
       - db
       - redis
@@ -80,22 +78,41 @@ services:
       - hipsta-network
 
   celery:
-      build:
-        context: .
-        dockerfile: Dockerfile.prod
-      command: celery -A hipsta_server worker --pool=solo -l info
-      depends_on:
-        - redis
-        - db
-      environment:
-        SECRET_KEY: ${SECRET_KEY}
-        CELERY_BROKER_URL: ${CELERY_BROKER_URL}
-        CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
-      restart: always
-      networks:
-        - hipsta-network
-      env_file:
-        - /root/hipsta/.env  # Point to the .env file on the server
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    command: celery -A hipsta_server worker --pool=solo -l info
+    depends_on:
+      - redis
+      - db
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS}
+      EMAIL_USE_SSL: ${EMAIL_USE_SSL}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      SOCIAL_PASSWORD: ${SOCIAL_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_STORAGE_BUCKET_NAME: ${AWS_STORAGE_BUCKET_NAME}
+      AWS_REGION: ${AWS_REGION}
+    restart: always
+    networks:
+      - hipsta-network
+    env_file:
+      - /root/hipsta/.env  # Ensure absolute path to the .env file on the server
 
   celery-beat:
     build:
@@ -109,11 +126,30 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS}
+      EMAIL_USE_SSL: ${EMAIL_USE_SSL}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      SOCIAL_PASSWORD: ${SOCIAL_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_STORAGE_BUCKET_NAME: ${AWS_STORAGE_BUCKET_NAME}
+      AWS_REGION: ${AWS_REGION}
     restart: always
     networks:
       - hipsta-network
     env_file:
-      - /root/hipsta/.env  # Point to the .env file on the server
+      - /root/hipsta/.env  # Ensure absolute path to the .env file on the server
 
 volumes:
   db_data:
