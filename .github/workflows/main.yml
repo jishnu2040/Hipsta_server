@@ -34,35 +34,33 @@ jobs:
             else
               cd /root/hipsta && git pull origin main;
             fi &&
-
+          
             # Ensure the .env.production file is correctly set up with all necessary variables
-            echo -e \"
-            SECRET_KEY=${{secrets.SECRET_KEY}}
-            DB_NAME=${{secrets.DB_NAME}}
-            DB_USER=${{secrets.DB_USER}}
-            DB_PASSWORD=${{secrets.DB_PASSWORD}}
-            DB_HOST=${{secrets.DB_HOST}}
-            DB_PORT=${{secrets.DB_PORT}}
-            REDIS_URL=${{secrets.REDIS_URL}}
-            CELERY_BROKER_URL=${{secrets.CELERY_BROKER_URL}}
-            CELERY_RESULT_BACKEND=${{secrets.CELERY_RESULT_BACKEND}}
-            EMAIL_HOST=${{secrets.EMAIL_HOST}}
-            EMAIL_PORT=${{secrets.EMAIL_PORT}}
-            EMAIL_HOST_USER=${{secrets.EMAIL_HOST_USER}}
-            EMAIL_HOST_PASSWORD=${{secrets.EMAIL_HOST_PASSWORD}}
-            EMAIL_USE_TLS=${{secrets.EMAIL_USE_TLS}}
-            EMAIL_USE_SSL=${{secrets.EMAIL_USE_SSL}}
-            DEFAULT_FROM_EMAIL=${{secrets.DEFAULT_FROM_EMAIL}}
-            AWS_ACCESS_KEY_ID=${{secrets.AWS_ACCESS_KEY_ID}}
-            AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}}
-            AWS_STORAGE_BUCKET_NAME=${{secrets.AWS_STORAGE_BUCKET_NAME}}
-            AWS_REGION=${{secrets.AWS_REGION}}
-            GOOGLE_CLIENT_ID=${{secrets.GOOGLE_CLIENT_ID}}
-            GOOGLE_CLIENT_SECRET=${{secrets.GOOGLE_CLIENT_SECRET}}
-            SOCIAL_PASSWORD=${{secrets.SOCIAL_PASSWORD}}
-            DEBUG=${{secrets.DEBUG}}
-            ALLOWED_HOSTS=${{secrets.ALLOWED_HOSTS}}
-            \" > /root/hipsta/.env.production &&
+            echo 'SECRET_KEY=${{ secrets.SECRET_KEY }}' > /root/hipsta/.env.production &&
+            echo 'DB_NAME=${{ secrets.DB_NAME }}' >> /root/hipsta/.env.production &&
+            echo 'DB_USER=${{ secrets.DB_USER }}' >> /root/hipsta/.env.production &&
+            echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> /root/hipsta/.env.production &&
+            echo 'DB_HOST=${{ secrets.DB_HOST }}' >> /root/hipsta/.env.production &&
+            echo 'DB_PORT=${{ secrets.DB_PORT }}' >> /root/hipsta/.env.production &&
+            echo 'REDIS_URL=${{ secrets.REDIS_URL }}' >> /root/hipsta/.env.production &&
+            echo 'CELERY_BROKER_URL=${{ secrets.CELERY_BROKER_URL }}' >> /root/hipsta/.env.production &&
+            echo 'CELERY_RESULT_BACKEND=${{ secrets.CELERY_RESULT_BACKEND }}' >> /root/hipsta/.env.production &&
+            echo 'EMAIL_HOST=${{ secrets.EMAIL_HOST }}' >> /root/hipsta/.env.production &&
+            echo 'EMAIL_PORT=${{ secrets.EMAIL_PORT }}' >> /root/hipsta/.env.production &&
+            echo 'EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}' >> /root/hipsta/.env.production &&
+            echo 'EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}' >> /root/hipsta/.env.production &&
+            echo 'EMAIL_USE_TLS=${{ secrets.EMAIL_USE_TLS }}' >> /root/hipsta/.env.production &&
+            echo 'EMAIL_USE_SSL=${{ secrets.EMAIL_USE_SSL }}' >> /root/hipsta/.env.production &&
+            echo 'DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }}' >> /root/hipsta/.env.production &&
+            echo 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' >> /root/hipsta/.env.production &&
+            echo 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' >> /root/hipsta/.env.production &&
+            echo 'AWS_STORAGE_BUCKET_NAME=${{ secrets.AWS_STORAGE_BUCKET_NAME }}' >> /root/hipsta/.env.production &&
+            echo 'AWS_REGION=${{ secrets.AWS_REGION }}' >> /root/hipsta/.env.production &&
+            echo 'GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}' >> /root/hipsta/.env.production &&
+            echo 'GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}' >> /root/hipsta/.env.production &&
+            echo 'SOCIAL_PASSWORD=${{ secrets.SOCIAL_PASSWORD }}' >> /root/hipsta/.env.production &&
+            echo 'DEBUG=${{ secrets.DEBUG }}' >> /root/hipsta/.env.production &&
+            echo 'ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}' >> /root/hipsta/.env.production &&
 
             # Ensure Docker login works on the server
             docker login -u \"${{ secrets.DOCKER_USERNAME }}\" -p \"${{ secrets.DOCKER_PASSWORD }}\" &&
