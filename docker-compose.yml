@@ -51,7 +51,7 @@ services:
     networks:
       - hipsta-network
     env_file:
-      - /root/hipsta/.env.production
+      - ./.env  # Reference the .env file located in the same directory as docker-compose.yml
 
   db:
     image: postgres:15-alpine
@@ -93,7 +93,7 @@ services:
     networks:
       - hipsta-network
     env_file:
-      - /root/hipsta/.env.production 
+      - ./.env  # Reference the .env file located in the same directory as docker-compose.yml
 
   celery-beat:
     build:
@@ -111,7 +111,7 @@ services:
     networks:
       - hipsta-network
     env_file:
-      - /root/hipsta/.env.production  
+      - ./.env  # Reference the .env file located in the same directory as docker-compose.yml
 
 volumes:
   db_data:
