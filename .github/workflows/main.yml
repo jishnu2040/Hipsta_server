@@ -34,8 +34,8 @@ jobs:
             else
               cd /root/hipsta && git pull origin main;
             fi &&
-            
-            # Ensure the .env file is correctly set up with all necessary variables
+
+            # Ensure the .env.production file is correctly set up with all necessary variables
             echo -e \"
             SECRET_KEY=${{ secrets.SECRET_KEY }}
             DB_NAME=${{ secrets.DB_NAME }}
@@ -62,7 +62,7 @@ jobs:
             SOCIAL_PASSWORD=${{ secrets.SOCIAL_PASSWORD }}
             DEBUG=${{ secrets.DEBUG }}
             ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}
-            \" > /root/hipsta/.env &&
+            \" > /root/hipsta/.env.production &&
 
             # Ensure Docker login works on the server
             docker login -u \"${{ secrets.DOCKER_USERNAME }}\" -p \"${{ secrets.DOCKER_PASSWORD }}\" &&
@@ -71,6 +71,6 @@ jobs:
             docker pull jishnu2040/hipsta-backend:latest &&
 
             # Stop any running containers and restart with updated environment variables
-            docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env down &&
-            docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env up --build -d
+            docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env.production down &&
+            docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env.production up --build -d
           "
