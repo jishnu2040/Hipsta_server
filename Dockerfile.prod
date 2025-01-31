@@ -7,7 +7,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y build-essential libpq-dev curl && apt-get clean
 
 # Copy the requirements file and install dependencies
-COPY requirements.txt .
+COPY requirements.txt . 
 RUN python -m venv /app/venv && /app/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Final Stage: Slim Python Image
@@ -21,9 +21,8 @@ RUN apt-get update && apt-get install -y libpq-dev curl && apt-get clean
 COPY --from=builder /app/venv /app/venv
 
 # Copy application code and environment variables file (.env)
-COPY . .
-COPY /root/hipsta/.env /root/hipsta/.env  
-
+COPY . . 
+COPY .env /app/.env
 # Set environment variables
 ENV PATH="/app/venv/bin:$PATH"
 ENV DJANGO_SETTINGS_MODULE=hipsta_server.settings.production
