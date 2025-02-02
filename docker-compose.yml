@@ -39,7 +39,7 @@ services:
     command: >
       bash -c "/app/venv/bin/python manage.py migrate &&
               /app/venv/bin/python manage.py collectstatic --noinput &&
-              /app/venv/bin/daphne -b 0.0.0.0 -p 8000 hipsta_server.asgi:application"
+              /app/venv/bin/daphne -b 0.0.0.0 -p 8001 hipsta_server.asgi:application"
     depends_on:
       - db
       - redis
