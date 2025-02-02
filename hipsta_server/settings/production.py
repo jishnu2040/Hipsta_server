@@ -20,6 +20,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
     'hipsta.live', 
     'www.hipsta.live', 
     'api.hipsta.live',  
+    'wss://api.hipsta.live'
     'localhost', 
     '127.0.0.1', 
     'localhost:8000',
