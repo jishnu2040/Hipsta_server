@@ -40,7 +40,7 @@ def send_code_to_user_task(self, email):
     email.send()
     return f'OTP email successfully sent to {email}'
 
-    
+     
 @shared_task
 def delete_expired_otps():
     now = timezone.now()

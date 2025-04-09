@@ -77,6 +77,8 @@ class RegisterUserView(GenericAPIView):
 # This view verifies the user's email using the OTP:
 # 1. It checks if the OTP exists and is not expired.
 # 2. If valid, it marks the user as verified and deletes the OTP record.
+# 3. suppose user faild to verify the Otp it will remove after certian time (which is fixied time in every day)
+#      using cron job (celery beat)
 class VerifyUserEmail(GenericAPIView):
     serializer_class = VerifyEmailSerializer
 
