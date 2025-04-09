@@ -28,20 +28,21 @@ jobs:
 
       - name: Deploy with Docker
         run: |
-          ssh -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} << 'EOF'
-            set -xe
+          set -x
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "
+            set -x
 
-            # Clone or pull latest code
+            # Clone or pull the latest code using SSH
             if [ ! -d '/root/hipsta' ]; then
-              echo 'Cloning repository...'
-              git clone git@github.com:jishnu2040/hipsta.git /root/hipsta
+              echo 'Cloning repository...';
+              git clone git@github.com:jishnu2040/hipsta.git /root/hipsta;
             else
-              echo 'Pulling latest changes...'
-              cd /root/hipsta && git pull origin main
-            fi
+              echo 'Pulling latest changes...';
+              cd /root/hipsta && git pull origin main;
+            fi &&
 
-            # Write the .env.production file
-            cat > /root/hipsta/.env.production <<EOT
+            # Write secrets to the .env.production file
+            cat > /root/hipsta/.env.production <<EOF
 SECRET_KEY=${{ secrets.SECRET_KEY }}
 DB_NAME=${{ secrets.DB_NAME }}
 DB_USER=${{ secrets.DB_USER }}
@@ -67,16 +68,13 @@ GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
 SOCIAL_PASSWORD=${{ secrets.SOCIAL_PASSWORD }}
 DEBUG=${{ secrets.DEBUG }}
 ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}
-EOT
-
-            # Docker login on droplet
-            docker login -u '${{ secrets.DOCKER_USERNAME }}' -p '${{ secrets.DOCKER_PASSWORD }}'
-
-            # Pull latest Docker image
-            docker pull jishnu2040/hipsta-backend:latest
-
-            # Restart containers
-            cd /root/hipsta
-            docker-compose -f docker-compose.yml --env-file .env.production down
-            docker-compose -f docker-compose.yml --env-file .env.production up --build -d
 EOF
+
+# Docker login on the droplet
+docker login -u \"${{ secrets.DOCKER_USERNAME }}\" -p \"${{ secrets.DOCKER_PASSWORD }}\" &&
+
+# Pull latest image and restart containers
+docker pull jishnu2040/hipsta-backend:latest &&
+docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env.production down &&
+docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env.production up --build -d
+"
