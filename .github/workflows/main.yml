@@ -44,10 +44,14 @@ jobs:
             echo 'Testing HTTPS clone...'
             if [ ! -d '/root/hipsta' ]; then
               echo 'Cloning repository via HTTPS...';
-              git clone https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/jishnu2040/hipsta.git /root/hipsta;
+              git clone https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/jishnu2040/Hipsta_server.git /root/hipsta;
             else
               echo 'Pulling latest changes...';
               cd /root/hipsta && git pull origin main;
+            fi &&
+            if [ ! -f /root/hipsta/docker-compose.yml ]; then
+              echo 'Error: docker-compose.yml not found in /root/hipsta';
+              exit 1;
             fi &&
             echo \"SECRET_KEY=${{ secrets.SECRET_KEY }}\" > /root/hipsta/.env.production &&
             echo \"DB_NAME=${{ secrets.DB_NAME }}\" >> /root/hipsta/.env.production &&
