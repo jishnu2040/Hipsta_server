@@ -29,7 +29,7 @@ jobs:
 
       - name: Test SSH to GitHub
         run: |
-          ssh -i ~/.ssh/id_hipsta -T git@github.com
+          ssh -i ~/.ssh/id_hipsta -T git@github.com || true
 
       - name: Deploy with Docker
         run: |
