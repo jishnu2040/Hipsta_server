@@ -10,6 +10,7 @@ from django.db import IntegrityError
 import logging
 
 logger = logging.getLogger(__name__)
+
 @shared_task(bind=True)
 def send_code_to_user_task(self, email):  
     subject = "Your One-Time Password (OTP) for Account Verification"
@@ -34,10 +35,15 @@ def send_code_to_user_task(self, email):
         otp.code = otp_code
         otp.save()
 
+    # ✅ Debug print & logger (only visible in server logs)
+    print(f"[DEBUG] OTP for {user.email}: {otp_code}")
+    logger.info(f"[OTP SENT] {user.email} -> {otp_code}")
+
     email_body = render_to_string("emails/otp_email.html", context)
-    email = EmailMessage(subject, email_body, settings.EMAIL_HOST_USER, [email])
-    email.content_subtype = "html"
-    email.send()
+    email_message = EmailMessage(subject, email_body, settings.DEFAULT_FROM_EMAIL, [email])
+    email_message.content_subtype = "html"
+    email_message.send()
+
     return f'OTP email successfully sent to {email}'
 
      
