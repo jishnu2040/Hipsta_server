@@ -20,11 +20,16 @@ jobs:
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.DO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_hipsta
+          chmod 600 ~/.ssh/id_hipsta
           ssh-keyscan -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
           eval $(ssh-agent -s)
-          ssh-add ~/.ssh/id_rsa
+          ssh-add ~/.ssh/id_hipsta
+
+      - name: Test SSH to GitHub
+        run: |
+          ssh -i ~/.ssh/id_hipsta -T git@github.com
 
       - name: Deploy with Docker
         run: |
@@ -35,12 +40,18 @@ jobs:
             
             if [ ! -d '/root/hipsta' ]; then
               echo 'Cloning repository...';
-              git clone git@github.com:jishnu2040/hipsta.git /root/hipsta;
+              GIT_SSH_COMMAND=\"ssh -i ~/.ssh/id_hipsta\" git clone git@github.com:jishnu2040/hipsta.git /root/hipsta;
 
             else
               echo 'Pulling latest changes...';
               cd /root/hipsta && git pull origin main;
             fi &&
+          
+            # Copy SSH key to the server for git clone
+            mkdir -p ~/.ssh &&
+            echo '${{ secrets.DO_SSH_PRIVATE_KEY }}' > ~/.ssh/id_hipsta &&
+            chmod 600 ~/.ssh/id_hipsta &&
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts &&
           
             # Ensure the .env.production file is correctly set up with all necessary variables
             echo \"SECRET_KEY=${{ secrets.SECRET_KEY }}\" > /root/hipsta/.env.production &&
