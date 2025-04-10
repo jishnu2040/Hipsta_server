@@ -1,82 +1,48 @@
-name: Deploy to DigitalOcean
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker
-        run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_hipsta
-          chmod 600 ~/.ssh/id_hipsta
-          ssh-keyscan -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts
-          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-          eval $(ssh-agent -s)
-          ssh-add ~/.ssh/id_hipsta
-
-      - name: Test SSH to GitHub
-        run: |
-          ssh -i ~/.ssh/id_hipsta -T git@github.com || true
-
-      - name: Deploy with Docker
-        run: |
-          set -x
-          ssh -v -i ~/.ssh/id_hipsta -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "
-            set -x
-            whoami
-            mkdir -p ~/.ssh
-            printf '%s\n' \"${{ secrets.DO_SSH_PRIVATE_KEY }}\" > ~/.ssh/id_hipsta
-            chmod 600 ~/.ssh/id_hipsta
-            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-            echo 'Testing SSH to GitHub...'
-            ssh -i ~/.ssh/id_hipsta -T git@github.com -v || true
-            if [ ! -d '/root/hipsta' ]; then
-              echo 'Cloning repository via HTTPS...';
-              git clone https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/jishnu2040/hipsta.git /root/hipsta;
-            else
-              echo 'Pulling latest changes...';
-              cd /root/hipsta && git pull origin main;
-            fi &&
-            echo \"SECRET_KEY=${{ secrets.SECRET_KEY }}\" > /root/hipsta/.env.production &&
-            echo \"DB_NAME=${{ secrets.DB_NAME }}\" >> /root/hipsta/.env.production &&
-            echo \"DB_USER=${{ secrets.DB_USER }}\" >> /root/hipsta/.env.production &&
-            echo \"DB_PASSWORD=${{ secrets.DB_PASSWORD }}\" >> /root/hipsta/.env.production &&
-            echo \"DB_HOST=${{ secrets.DB_HOST }}\" >> /root/hipsta/.env.production &&
-            echo \"DB_PORT=${{ secrets.DB_PORT }}\" >> /root/hipsta/.env.production &&
-            echo \"REDIS_URL=${{ secrets.REDIS_URL }}\" >> /root/hipsta/.env.production &&
-            echo \"CELERY_BROKER_URL=${{ secrets.CELERY_BROKER_URL }}\" >> /root/hipsta/.env.production &&
-            echo \"CELERY_RESULT_BACKEND=${{ secrets.CELERY_RESULT_BACKEND }}\" >> /root/hipsta/.env.production &&
-            echo \"EMAIL_HOST=${{ secrets.EMAIL_HOST }}\" >> /root/hipsta/.env.production &&
-            echo \"EMAIL_PORT=${{ secrets.EMAIL_PORT }}\" >> /root/hipsta/.env.production &&
-            echo \"EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}\" >> /root/hipsta/.env.production &&
-            echo \"EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}\" >> /root/hipsta/.env.production &&
-            echo \"EMAIL_USE_TLS=${{ secrets.EMAIL_USE_TLS }}\" >> /root/hipsta/.env.production &&
-            echo \"EMAIL_USE_SSL=${{ secrets.EMAIL_USE_SSL }}\" >> /root/hipsta/.env.production &&
-            echo \"DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }}\" >> /root/hipsta/.env.production &&
-            echo \"AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}\" >> /root/hipsta/.env.production &&
-            echo \"AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}\" >> /root/hipsta/.env.production &&
-            echo \"AWS_STORAGE_BUCKET_NAME=${{ secrets.AWS_STORAGE_BUCKET_NAME }}\" >> /root/hipsta/.env.production &&
-            echo \"AWS_REGION=${{ secrets.AWS_REGION }}\" >> /root/hipsta/.env.production &&
-            echo \"GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}\" >> /root/hipsta/.env.production &&
-            echo \"GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}\" >> /root/hipsta/.env.production &&
-            echo \"SOCIAL_PASSWORD=${{ secrets.SOCIAL_PASSWORD }}\" >> /root/hipsta/.env.production &&
-            echo \"DEBUG=${{ secrets.DEBUG }}\" >> /root/hipsta/.env.production &&
-            echo \"ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}\" >> /root/hipsta/.env.production &&
-            docker login -u \"${{ secrets.DOCKER_USERNAME }}\" -p \"${{ secrets.DOCKER_PASSWORD }}\" &&
-            docker pull jishnu2040/hipsta-backend:latest &&
-            docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env.production down &&
-            docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env.production up --build -d
-          "
+- name: Deploy with Docker
+  run: |
+    set -x
+    ssh -v -i ~/.ssh/id_hipsta -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "
+      set -x
+      whoami
+      mkdir -p ~/.ssh
+      printf '%s\n' \"${{ secrets.DO_SSH_PRIVATE_KEY }}\" > ~/.ssh/id_hipsta
+      chmod 600 ~/.ssh/id_hipsta
+      ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+      echo 'Testing HTTPS clone...'
+      if [ ! -d '/root/hipsta' ]; then
+        echo 'Cloning repository via HTTPS...';
+        git clone https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/jishnu2040/hipsta.git /root/hipsta;
+      else
+        echo 'Pulling latest changes...';
+        cd /root/hipsta && git pull origin main;
+      fi &&
+      echo \"SECRET_KEY=${{ secrets.SECRET_KEY }}\" > /root/hipsta/.env.production &&
+      echo \"DB_NAME=${{ secrets.DB_NAME }}\" >> /root/hipsta/.env.production &&
+      echo \"DB_USER=${{ secrets.DB_USER }}\" >> /root/hipsta/.env.production &&
+      echo \"DB_PASSWORD=${{ secrets.DB_PASSWORD }}\" >> /root/hipsta/.env.production &&
+      echo \"DB_HOST=${{ secrets.DB_HOST }}\" >> /root/hipsta/.env.production &&
+      echo \"DB_PORT=${{ secrets.DB_PORT }}\" >> /root/hipsta/.env.production &&
+      echo \"REDIS_URL=${{ secrets.REDIS_URL }}\" >> /root/hipsta/.env.production &&
+      echo \"CELERY_BROKER_URL=${{ secrets.CELERY_BROKER_URL }}\" >> /root/hipsta/.env.production &&
+      echo \"CELERY_RESULT_BACKEND=${{ secrets.CELERY_RESULT_BACKEND }}\" >> /root/hipsta/.env.production &&
+      echo \"EMAIL_HOST=${{ secrets.EMAIL_HOST }}\" >> /root/hipsta/.env.production &&
+      echo \"EMAIL_PORT=${{ secrets.EMAIL_PORT }}\" >> /root/hipsta/.env.production &&
+      echo \"EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}\" >> /root/hipsta/.env.production &&
+      echo \"EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}\" >> /root/hipsta/.env.production &&
+      echo \"EMAIL_USE_TLS=${{ secrets.EMAIL_USE_TLS }}\" >> /root/hipsta/.env.production &&
+      echo \"EMAIL_USE_SSL=${{ secrets.EMAIL_USE_SSL }}\" >> /root/hipsta/.env.production &&
+      echo \"DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }}\" >> /root/hipsta/.env.production &&
+      echo \"AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}\" >> /root/hipsta/.env.production &&
+      echo \"AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}\" >> /root/hipsta/.env.production &&
+      echo \"AWS_STORAGE_BUCKET_NAME=${{ secrets.AWS_STORAGE_BUCKET_NAME }}\" >> /root/hipsta/.env.production &&
+      echo \"AWS_REGION=${{ secrets.AWS_REGION }}\" >> /root/hipsta/.env.production &&
+      echo \"GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}\" >> /root/hipsta/.env.production &&
+      echo \"GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}\" >> /root/hipsta/.env.production &&
+      echo \"SOCIAL_PASSWORD=${{ secrets.SOCIAL_PASSWORD }}\" >> /root/hipsta/.env.production &&
+      echo \"DEBUG=${{ secrets.DEBUG }}\" >> /root/hipsta/.env.production &&
+      echo \"ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}\" >> /root/hipsta/.env.production &&
+      docker login -u \"${{ secrets.DOCKER_USERNAME }}\" -p \"${{ secrets.DOCKER_PASSWORD }}\" &&
+      docker pull jishnu2040/hipsta-backend:latest &&
+      docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env.production down &&
+      docker-compose -f /root/hipsta/docker-compose.yml --env-file /root/hipsta/.env.production up --build -d
+    "
