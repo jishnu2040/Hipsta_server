@@ -34,7 +34,7 @@ jobs:
       - name: Deploy with Docker
         run: |
           set -x
-          ssh -v -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "
+          ssh -v -i ~/.ssh/id_hipsta -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "
             set -x
             whoami
             ls -la ~/.ssh
