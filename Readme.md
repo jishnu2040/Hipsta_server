@@ -11,3 +11,4 @@ For Docker Production:
 ----------------------
 
 Uncomment the production line and comment the development line in manage.py, asgi.py, and celery.py.................
+"# Test retry" 
